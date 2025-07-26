@@ -1,2 +1,2 @@
 # Power-diagnoser
-Pwer-diagnoser in kor
+Power-diagnoser in kor
