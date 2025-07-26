@@ -1,5 +1,6 @@
-
-<!DOCTYPE html><html lang="ko"><head>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>계약전력 진단기</title>
@@ -178,7 +179,9 @@
         padding: 10px;
       }
     }
-  </style></head><body>
+  </style>
+</head>
+<body>
   <h1>⚡ 계약전력 진단기</h1>
   <div class="disclaimer">
     <strong>🚨 본 진단기는 한전(한국전력공사)의 공식 서비스가 아닙니다.</strong><br>
@@ -349,7 +352,7 @@
       return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
 
-    function diagnose(isSimulation = false) {
+    async function diagnose(isSimulation = false) { // async 키워드 추가
       if (!privacyConsent.checked) {
         alert('정보 수집 및 이용에 동의해야 진단을 진행할 수 있습니다.');
         return;
@@ -489,43 +492,50 @@
       // 이 URL은 당신의 Google Apps Script 배포 URL이며, 이전에 성공적으로 배포한 URL을 사용해야 합니다.
       const googleScriptURL = "https://script.google.com/macros/s/AKfycbw4DTmN9tTqs6dNGXvpmNyvLrn_jR2UnDF_qlPYiNKpZmrSdFXhbKow7t6iKvCXtoW5/exec";
         
-      fetch(googleScriptURL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          categoryVal,
-          subcategoryVal,
-          area,
-          contract,
-          maxUsage,
-          is24h,
-          recommendedPower: finalRecommendedPower, 
-          diff: diffForJudgment, 
-          status,
-          costDiff: costDiff, 
-          userAgent: navigator.userAgent,
-          sessionId: currentSessionId,
-          inputStartTime: new Date(inputStartTime).toISOString(),
-          diagnoseClickTime: new Date(diagnoseClickTime).toISOString(),
-          isSimulation: isSimulation,
-          memo: ""
-        }),
-      })
-      .then((response) => {
-          if (!response.ok) { 
-              throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.text();
-      })
-      .then((result) => {
-        console.log("데이터 전송 성공:", result);
-      })
-      .catch((error) => {
+      try {
+        const response = await fetch(googleScriptURL, { // await 키워드 추가
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json", // Google Apps Script에서 CORS를 처리하도록 수정했으므로, 다시 application/json으로 변경합니다.
+          },
+          body: JSON.stringify({
+            categoryVal,
+            subcategoryVal,
+            area,
+            contract,
+            maxUsage,
+            is24h,
+            recommendedPower: finalRecommendedPower, 
+            diff: diffForJudgment, 
+            status,
+            costDiff: costDiff, 
+            userAgent: navigator.userAgent,
+            sessionId: currentSessionId,
+            inputStartTime: new Date(inputStartTime).toISOString(),
+            diagnoseClickTime: new Date(diagnoseClickTime).toISOString(),
+            isSimulation: isSimulation,
+            memo: ""
+          }),
+        });
+
+        if (!response.ok) { 
+            // 서버 응답이 성공(2xx)이 아닐 경우
+            const errorData = await response.text(); // 텍스트로 응답을 받아서 확인
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorData}`);
+        }
+        
+        // Google Apps Script에서 JSON 응답을 보낼 경우
+        // const resultData = await response.json(); 
+        // console.log("데이터 전송 성공:", resultData);
+
+        // Google Apps Script에서 텍스트 응답을 보낼 경우 (현재 스크립트는 JSON으로 보냄)
+        const resultText = await response.text();
+        console.log("데이터 전송 성공:", resultText);
+
+      } catch (error) {
         console.error("데이터 전송 실패:", error);
         alert('데이터 전송 오류가 발생했습니다. 잠시 후 다시 시도해주세요. (콘솔 로그 확인 필요)'); 
-      });
+      }
     }
 
     detailBtn.addEventListener('click', () => {
@@ -543,4 +553,6 @@
     simulateBtn.addEventListener('click', () => diagnose(true));
 
     updateButtonState();
-  </script></body></html>
+  </script>
+</body>
+</html>
