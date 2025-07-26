@@ -248,350 +248,350 @@
   <button class="hidden" id="detailBtn">🔍 계산 결과 상세보기</button>
   <div class="details hidden" id="details"></div>
   <div class="info-note hidden"></div>
-  <script>
-    const category = document.getElementById('category');
-    const subDiv = document.getElementById('subcategoryDiv');
-    const subInput = document.getElementById('subcategory');
-    const diagnoseBtn = document.getElementById('diagnoseBtn');
-    const simulateBtn = document.getElementById('simulateBtn');
-    const privacyConsent = document.getElementById('privacyConsent');
-    const detailBtn = document.getElementById('detailBtn');
+  
+const category = document.getElementById('category');
+const subDiv = document.getElementById('subcategoryDiv');
+const subInput = document.getElementById('subcategory');
+const diagnoseBtn = document.getElementById('diagnoseBtn');
+const simulateBtn = document.getElementById('simulateBtn');
+const privacyConsent = document.getElementById('privacyConsent');
+const detailBtn = document.getElementById('detailBtn');
+const resultDiv = document.getElementById('result'); // 결과 div 요소
 
-    const inputStartTime = Date.now();
+const inputStartTime = Date.now();
 
-    function getSessionId() {
-        let sessionId = sessionStorage.getItem('sessionId');
-        if (!sessionId) {
-            sessionId = Math.random().toString(36).substring(2) + Date.now().toString(36);
-            sessionStorage.setItem('sessionId', sessionId);
-        }
-        return sessionId;
-    }
-    const currentSessionId = getSessionId();
+function getSessionId() {
+    let sessionId = sessionStorage.getItem('sessionId');
+    if (!sessionId) {
+        sessionId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+        sessionStorage.setItem('sessionId', sessionId);
+    }
+    return sessionId;
+}
+const currentSessionId = getSessionId();
 
-    const errors = {
-      categoryError: document.getElementById('categoryError'),
-      subcategoryError: document.getElementById('subcategoryError'),
-      areaError: document.getElementById('areaError'),
-      contractPowerError: document.getElementById('contractPowerError'),
-      maxUsageError: document.getElementById('maxUsageError')
-    };
+const errors = {
+  categoryError: document.getElementById('categoryError'),
+  subcategoryError: document.getElementById('subcategoryError'),
+  areaError: document.getElementById('areaError'),
+  contractPowerError: document.getElementById('contractPowerError'),
+  maxUsageError: document.getElementById('maxUsageError')
+};
 
-    const fieldsToValidate = [
-      { element: category, errorElement: errors.categoryError, validate: (val) => val.trim() !== '' },
-      { element: subInput, errorElement: errors.subcategoryError, validate: (val) => !subDiv.classList.contains('hidden') ? val.trim() !== '' : true },
-      { element: document.getElementById('area'), errorElement: errors.areaError, validate: (val) => parseInt(val) >= 1 },
-      { element: document.getElementById('contractPower'), errorElement: errors.contractPowerError, validate: (val) => parseInt(val) >= 1 },
-      { element: document.getElementById('maxUsage'), errorElement: errors.maxUsageError, validate: (val) => parseInt(val) >= 1 }
-    ];
+const fieldsToValidate = [
+  { element: category, errorElement: errors.categoryError, validate: (val) => val.trim() !== '' },
+  { element: subInput, errorElement: errors.subcategoryError, validate: (val) => !subDiv.classList.contains('hidden') ? val.trim() !== '' : true },
+  { element: document.getElementById('area'), errorElement: errors.areaError, validate: (val) => parseInt(val) >= 1 },
+  { element: document.getElementById('contractPower'), errorElement: errors.contractPowerError, validate: (val) => parseInt(val) >= 1 },
+  { element: document.getElementById('maxUsage'), errorElement: errors.maxUsageError, validate: (val) => parseInt(val) >= 1 }
+];
 
-    function validateField(field) {
-      const value = field.element.value;
-      if (!field.validate(value)) {
-        field.errorElement.classList.remove('hidden');
-        return false;
-      } else {
-        field.errorElement.classList.add('hidden');
-        return true;
-      }
-    }
+function validateField(field) {
+  const value = field.element.value;
+  if (!field.validate(value)) {
+    field.errorElement.classList.remove('hidden');
+    return false;
+  } else {
+    field.errorElement.classList.add('hidden');
+    return true;
+  }
+}
 
-    fieldsToValidate.forEach(field => {
-      field.element.addEventListener('input', () => validateField(field));
-      field.element.addEventListener('change', () => validateField(field));
-    });
+fieldsToValidate.forEach(field => {
+  field.element.addEventListener('input', () => validateField(field));
+  field.element.addEventListener('change', () => validateField(field));
+});
 
-    function updateButtonState() {
-        const isConsentChecked = privacyConsent.checked;
-        const isFirstDiagnosisDone = sessionStorage.getItem('firstDiagnosisDone') === 'true';
+function updateButtonState() {
+    const isConsentChecked = privacyConsent.checked;
+    const isFirstDiagnosisDone = sessionStorage.getItem('firstDiagnosisDone') === 'true';
 
-        if (isConsentChecked) {
-            if (isFirstDiagnosisDone) {
-                diagnoseBtn.classList.add('hidden');
-                simulateBtn.classList.remove('hidden');
-                simulateBtn.disabled = false;
-            } else {
-                diagnoseBtn.classList.remove('hidden');
-                simulateBtn.classList.add('hidden');
-                diagnoseBtn.disabled = false;
-            }
-        } else {
-            diagnoseBtn.disabled = true;
-            simulateBtn.disabled = true;
-        }
-    }
+    if (isConsentChecked) {
+        if (isFirstDiagnosisDone) {
+            diagnoseBtn.classList.add('hidden');
+            simulateBtn.classList.remove('hidden');
+            simulateBtn.disabled = false;
+        } else {
+            diagnoseBtn.classList.remove('hidden');
+            simulateBtn.classList.add('hidden');
+            diagnoseBtn.disabled = false;
+        }
+    } else {
+        diagnoseBtn.disabled = true;
+        simulateBtn.disabled = true;
+    }
+}
 
-    privacyConsent.addEventListener('change', updateButtonState);
-    updateButtonState();
+privacyConsent.addEventListener('change', updateButtonState);
+updateButtonState();
 
-    category.addEventListener('change', () => {
-      const placeholders = {
-        음식: '한식, 치킨, 중국음식, 카페, 제빵',
-        소매: '편의점, 무인 아이스크림, 휴대폰 가게, 옷가게, 꽃가게',
-        교육: '영어 학원, 피아노 학원, 발레 학원',
-        숙박: '펜션, 게스트 하우스, 모텔',
-        병의원: '이비인후과, 치과, 소아과, 한의원, 약국',
-        기타: '부동산 중개, 미용실, 무인 세탁소'
-      };
-      if (category.value) {
-        subDiv.classList.remove('hidden');
-        subInput.placeholder = placeholders[category.value] || '';
-      } else {
-        subDiv.classList.add('hidden');
-        subInput.value = ''; 
-      }
-      validateField(fieldsToValidate[0]);
-      if (!category.value) { 
-        errors.subcategoryError.classList.add('hidden');
-      } else {
-        validateField(fieldsToValidate[1]);
-      }
-    });
+category.addEventListener('change', () => {
+  const placeholders = {
+    음식: '한식, 치킨, 중국음식, 카페, 제빵',
+    소매: '편의점, 무인 아이스크림, 휴대폰 가게, 옷가게, 꽃가게',
+    교육: '영어 학원, 피아노 학원, 발레 학원',
+    숙박: '펜션, 게스트 하우스, 모텔',
+    병의원: '이비인후과, 치과, 소아과, 한의원, 약국',
+    기타: '부동산 중개, 미용실, 무인 세탁소'
+  };
+  if (category.value) {
+    subDiv.classList.remove('hidden');
+    subInput.placeholder = placeholders [category.value] || '';
+  } else {
+    subDiv.classList.add('hidden');
+    subInput.value = ''; 
+  }
+  validateField(fieldsToValidate [0]);
+  if (!category.value) { 
+    errors.subcategoryError.classList.add('hidden');
+  } else {
+    validateField(fieldsToValidate [1]);
+  }
+});
 
-    function numberWithCommas(x) {
-      return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    }
+function numberWithCommas(x) {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
 
-    async function diagnose(isSimulation = false) { 
-      if (!privacyConsent.checked) {
-        alert('정보 수집 및 이용에 동의해야 진단을 진행할 수 있습니다.');
-        return;
-      }
+async function diagnose(isSimulation = false) { 
+  if (!privacyConsent.checked) {
+    alert('정보 수집 및 이용에 동의해야 진단을 진행할 수 있습니다.');
+    return;
+  }
 
-      let allFieldsValid = true;
-      fieldsToValidate.forEach(field => {
-        if (!validateField(field)) {
-          allFieldsValid = false;
-        }
-      });
+  let allFieldsValid = true;
+  fieldsToValidate.forEach(field => {
+    if (!validateField(field)) {
+      allFieldsValid = false;
+    }
+  });
 
-      if (!allFieldsValid) {
-        alert('필수 입력 항목을 모두 올바르게 채워주세요.'); 
-        return; 
-      }
+  if (!allFieldsValid) {
+    alert('필수 입력 항목을 모두 올바르게 채워주세요.'); 
+    return; 
+  }
 
-      const categoryVal = category.value.trim();
-      const subcategoryVal = subInput.value.trim();
-      const area = parseInt(document.getElementById('area').value);
-      const contract = parseInt(document.getElementById('contractPower').value);
-      const maxUsage = parseInt(document.getElementById('maxUsage').value);
-      const is24h = document.getElementById('is24h').checked;
-      const diagnoseClickTime = Date.now();
+  const categoryVal = category.value.trim();
+  const subcategoryVal = subInput.value.trim();
+  const area = parseInt(document.getElementById('area').value);
+  const contract = parseInt(document.getElementById('contractPower').value);
+  const maxUsage = parseInt(document.getElementById('maxUsage').value);
+  const is24h = document.getElementById('is24h').checked;
+  const diagnoseClickTime = Date.now();
 
-      const divisor = is24h ? 720 : 450;
-      const calculatedRaw = maxUsage / divisor; 
-      const calculatedCeiled = Math.ceil(calculatedRaw); 
-     
-      let initialRecommendedPower = calculatedCeiled + 2; 
-      let finalRecommendedPower = initialRecommendedPower; 
-      let minPowerNote = ''; 
+  const divisor = is24h ? 720 : 450;
+  const calculatedRaw = maxUsage / divisor; 
+  const calculatedCeiled = Math.ceil(calculatedRaw); 
+  
+  let initialRecommendedPower = calculatedCeiled + 2; 
+  let finalRecommendedPower = initialRecommendedPower; 
+  let minPowerNote = ''; 
 
-      if (initialRecommendedPower < 5) { 
-          finalRecommendedPower = 5;
-          minPowerNote = `(최소 계약전력은 5kW 적용)`; 
-      }
-     
-      const diffForJudgment = contract - calculatedCeiled; 
-      const diffForFeeCalculation = contract - finalRecommendedPower; 
+  if (initialRecommendedPower < 5) { 
+      finalRecommendedPower = 5;
+      minPowerNote = `(최소 계약전력은 5kW 적용)`; 
+  }
+  
+  const diffForJudgment = contract - calculatedCeiled; 
+  const diffForFeeCalculation = contract - finalRecommendedPower; 
 
-      const feePerKw = 6160;
+  const feePerKw = 6160;
 
-      let judgment = '', message = '', feeText = '', caution = '', note = '';
-      let displayedPowerText = ''; 
-      let displayedPowerValue = 0; 
+  let judgment = '', message = '', feeText = '', caution = '', note = '';
+  let displayedPowerText = ''; 
+  let displayedPowerValue = 0; 
 
-      let detailsHtmlContent = `
-        ▷ 최소 계약전력 계산식<br/>
-        &nbsp;&nbsp;&nbsp;&nbsp;${numberWithCommas(maxUsage)}kWh ÷ ${divisor}시간 = ${calculatedRaw.toFixed(2)} ≒ <strong>${calculatedCeiled}kW</strong><br>
-        ▷ 현재 계약전력: <strong>${contract}kW</strong><br>
-      `;
+  let detailsHtmlContent = `
+    ▷ 최소 계약전력 계산식<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;${numberWithCommas(maxUsage)}kWh ÷ ${divisor}시간 = ${calculatedRaw.toFixed(2)} ≒ <strong>${calculatedCeiled}kW</strong><br>
+    ▷ 현재 계약전력: <strong>${contract}kW</strong><br>
+  `;
 
-      if (diffForJudgment < 0) { 
-        judgment = '<span class="warning">부족</span>';
-        const increase = Math.abs(diffForFeeCalculation) * feePerKw; 
-        feeText = `가산금 청구 및 전력 차단 위험이 있습니다.<br/><strong>${finalRecommendedPower}kW</strong>로 변경 시 월 기본요금이 <strong>${numberWithCommas(increase)}원 증가</strong>될 수 있습니다.`;
-        message = '현재 계약 전력이 부족합니다.';
-        caution = '<div class="hint" id="cautionMsg">⚠️ 계약전력을 변경 후 1년 이내에는 특별한 사정이 없는 한 감소할 수 없습니다. 신중히 결정하세요.</div>';
-        displayedPowerText = '추천 계약전력';
-        displayedPowerValue = finalRecommendedPower; 
-       
-        detailsHtmlContent += `
-          ▷ 추천 계약전력 : ${calculatedCeiled}kW + 2kW(여유) ${initialRecommendedPower !== finalRecommendedPower ? '≒' : '='} <strong>${finalRecommendedPower}kW</strong><br>
-          ${minPowerNote ? `&nbsp;&nbsp;&nbsp;&nbsp;${minPowerNote}<br>` : ''}
-          ▷ 추천 계약전력과 차이<br/>
-          &nbsp;&nbsp;&nbsp;&nbsp;${contract}kW - ${finalRecommendedPower}kW = <strong>${diffForFeeCalculation}kW</strong><br>
-          ▷ 월간 기본요금 차이<br/>
-          &nbsp;&nbsp;&nbsp;&nbsp;${numberWithCommas(feePerKw)}원 × ${Math.abs(diffForFeeCalculation)}kW = <strong>${numberWithCommas(Math.abs(diffForFeeCalculation) * feePerKw)}원</strong>
-        `;
+  if (diffForJudgment < 0) { 
+    judgment = '<span class="warning">부족</span>';
+    const increase = Math.abs(diffForFeeCalculation) * feePerKw; 
+    feeText = `가산금 청구 및 전력 차단 위험이 있습니다.<br/><strong>${finalRecommendedPower}kW</strong>로 변경 시 월 기본요금이 <strong>${numberWithCommas(increase)}원 증가</strong>될 수 있습니다.`;
+    message = '현재 계약 전력이 부족합니다.';
+    caution = '<div class="hint" id="cautionMsg">⚠️ 계약전력을 변경 후 1년 이내에는 특별한 사정이 없는 한 감소할 수 없습니다. 신중히 결정하세요.</div>';
+    displayedPowerText = '추천 계약전력'; 
+    displayedPowerValue = finalRecommendedPower; 
+    
+    detailsHtmlContent += `
+      ▷ 추천 계약전력 : ${calculatedCeiled}kW + 2kW(여유) ${initialRecommendedPower !== finalRecommendedPower ? '≒' : '='} <strong>${finalRecommendedPower}kW</strong><br>
+      ${minPowerNote ? `&nbsp;&nbsp;&nbsp;&nbsp;${minPowerNote}<br>` : ''}
+      ▷ 추천 계약전력과 차이<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;${contract}kW - ${finalRecommendedPower}kW = <strong>${diffForFeeCalculation}kW</strong><br>
+      ▷ 월간 기본요금 차이<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;${numberWithCommas(feePerKw)}원 × ${Math.abs(diffForFeeCalculation)}kW = <strong>${numberWithCommas(Math.abs(diffForFeeCalculation) * feePerKw)}원</strong>
+    `;
 
-      } else if (diffForJudgment >= 0 && diffForJudgment <= 2) {
-        judgment = '<span class="warning">적정</span>';
-        if (contract !== calculatedCeiled) {
-            feeText = '현재 계약 전력은 적절한 여유분을 가지고 있습니다.';
-        } else {
-            feeText = '현재 계약 전력은 최소 필요량과 같습니다.'; 
-        }
-        message = '현재 계약 전력은 적정 수준입니다.';
-        caution = '';
-        displayedPowerText = '계산된 최소 계약전력'; 
-        displayedPowerValue = calculatedCeiled; 
-       
-      } else { 
-        judgment = '<span class="warning">과다</span>';
-        const saved = Math.abs(diffForFeeCalculation) * feePerKw; 
-        feeText = `불필요한 비용이 발생하고 있습니다.<br/><strong>${finalRecommendedPower}kW</strong>로 변경 시 월 기본요금이 <strong>${numberWithCommas(saved)}원 감소</strong>될 수 있습니다.`;
-        message = '현재 계약 전력이 과도하게 높습니다.';
-        caution = '<div class="hint" id="cautionMsg">⚠️ 계약전력을 변경 후 1년 이내에는 특별한 사정이 없는 한 감소할 수 없습니다. 신중히 결정하세요.</div>';
-        displayedPowerText = '추천 계약전력';
-        displayedPowerValue = finalRecommendedPower; 
-       
-        detailsHtmlContent += `
-          ▷ 추천 계약전력 : ${calculatedCeiled}kW + 2kW(여유) ${initialRecommendedPower !== finalRecommendedPower ? '≒' : '='} <strong>${finalRecommendedPower}kW</strong><br>
-          ${minPowerNote ? `&nbsp;&nbsp;&nbsp;&nbsp;${minPowerNote}<br>` : ''}
-          ▷ 추천 계약전력과 차이<br/>
-          &nbsp;&nbsp;&nbsp;&nbsp;${contract}kW - ${finalRecommendedPower}kW = <strong>${diffForFeeCalculation}kW</strong><br>
-          ▷ 월간 기본요금 차이<br/>
-          &nbsp;&nbsp;&nbsp;&nbsp;${numberWithCommas(feePerKw)}원 × ${Math.abs(diffForFeeCalculation)}kW = <strong>${numberWithCommas(Math.abs(diffForFeeCalculation) * feePerKw)}원</strong>
-        `;
-      }
+  } else if (diffForJudgment >= 0 && diffForJudgment <= 2) {
+    judgment = '<span class="warning">적정</span>';
+    if (contract !== calculatedCeiled) {
+        feeText = '현재 계약 전력은 적절한 여유분을 가지고 있습니다.';
+    } else {
+        feeText = '현재 계약 전력은 최소 필요량과 같습니다.'; 
+    }
+    message = '현재 계약 전력은 적정 수준입니다.';
+    caution = '';
+    displayedPowerText = '계산된 최소 계약전력'; 
+    displayedPowerValue = calculatedCeiled; 
+    
+  } else { 
+    judgment = '<span class="warning">과다</span>';
+    const saved = Math.abs(diffForFeeCalculation) * feePerKw; 
+    feeText = `불필요한 비용이 발생하고 있습니다.<br/><strong>${finalRecommendedPower}kW</strong>로 변경 시 월 기본요금이 <strong>${numberWithCommas(saved)}원 감소</strong>될 수 있습니다.`;
+    message = '현재 계약 전력이 과도하게 높습니다.';
+    caution = '<div class="hint" id="cautionMsg">⚠️ 계약전력을 변경 후 1년 이내에는 특별한 사정이 없는 한 감소할 수 없습니다. 신중히 결정하세요.</div>';
+    displayedPowerText = '추천 계약전력'; 
+    displayedPowerValue = finalRecommendedPower; 
+    
+    detailsHtmlContent += `
+      ▷ 추천 계약전력 : ${calculatedCeiled}kW + 2kW(여유) ${initialRecommendedPower !== finalRecommendedPower ? '≒' : '='} <strong>${finalRecommendedPower}kW</strong><br>
+      ${minPowerNote ? `&nbsp;&nbsp;&nbsp;&nbsp;${minPowerNote}<br>` : ''}
+      ▷ 추천 계약전력과 차이<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;${contract}kW - ${finalRecommendedPower}kW = <strong>${diffForFeeCalculation}kW</strong><br>
+      ▷ 월간 기본요금 차이<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;${numberWithCommas(feePerKw)}원 × ${Math.abs(diffForFeeCalculation)}kW = <strong>${numberWithCommas(Math.abs(diffForFeeCalculation) * feePerKw)}원</strong>
+    `;
+  }
 
-      if (contract >= 20) {
-        note = '<div class="hint">⚠️ 20kW 이상일 경우 최대 수요 전력 미반영 진단입니다. 본 진단은 사용량 기준으로 보조적인 참고만 하시기 바랍니다.</div>';
-      } else {
-        note = '';
-      }
+  if (contract >= 20) {
+    note = '<div class="hint">⚠️ 20kW 이상일 경우 최대 수요 전력 미반영 진단입니다. 본 진단은 사용량 기준으로 보조적인 참고만 하시기 바랍니다.</div>';
+  } else {
+    note = '';
+  }
 
-      const status = judgment.replace(/<[^>]+>/g, '');
-      const costDiff = diffForFeeCalculation * feePerKw; 
+  const status = judgment.replace(/<[^>]+>/g, '');
+  const costDiff = diffForFeeCalculation * feePerKw; 
 
-      const result = document.getElementById('result');
-      result.classList.remove('hidden');
-      result.innerHTML = `
-        <div>① 현재 계약전력 판단 결과 : ${judgment}</div>
-        <div>② ${displayedPowerText} : <strong>${displayedPowerValue}kW</strong></div>
-        <div>③ ${message}</div> 
-        <div>④ ${feeText}</div>
-        ${caution}
-        ${note}
-      `;
+  resultDiv.classList.remove('hidden'); // 결과 div를 보이게 합니다.
+  resultDiv.innerHTML = `
+    <div>① 현재 계약전력 판단 결과 : ${judgment}</div>
+    <div>② ${displayedPowerText} : <strong>${displayedPowerValue}kW</strong></div>
+    <div>③ ${message}</div> 
+    <div>④ ${feeText}</div>
+    ${caution}
+    ${note}
+  `;
 
-      if (!isSimulation) {
-          sessionStorage.setItem('firstDiagnosisDone', 'true');
-          diagnoseBtn.classList.add('hidden');
-          simulateBtn.classList.remove('hidden');
-          simulateBtn.disabled = false;
-      }
+  if (!isSimulation) {
+      sessionStorage.setItem('firstDiagnosisDone', 'true');
+      diagnoseBtn.classList.add('hidden');
+      simulateBtn.classList.remove('hidden');
+      simulateBtn.disabled = false;
+  }
 
-      detailBtn.classList.remove('hidden');
-      detailBtn.innerText = '🔍 계산 결과 상세보기';
-      document.getElementById('details').classList.add('hidden');
-     
-      document.getElementById('details').innerHTML = detailsHtmlContent;
+  detailBtn.classList.remove('hidden'); // 상세 결과 보기 버튼을 보이게 합니다.
+  detailBtn.innerText = '🔍 계산 결과 상세보기';
+  document.getElementById('details').classList.add('hidden');
+  
+  document.getElementById('details').innerHTML = detailsHtmlContent;
 
-      // !!!! 중요: 이 URL을 당신의 Cloudflare Worker URL로 변경하세요. !!!!
-      const googleScriptURL = "https://throbbing-block-3ed5.kknnd0728.workers.dev"; 
-      // 이 부분을 당신이 받은 URL로 변경하세요.
-       
-      try {
-        const response = await fetch(googleScriptURL, { 
-          method: "POST",
-          headers: {
-            "Content-Type": "text/plain", // <--- 여기를 "text/plain"으로 최종 변경합니다!
-          },
-          body: JSON.stringify({ // JSON.stringify는 그대로 사용하여 데이터를 JSON 문자열로 변환합니다.
-            categoryVal,
-            subcategoryVal,
-            area,
-            contract,
-            maxUsage,
-            is24h,
-            recommendedPower: finalRecommendedPower, 
-            diff: diffForJudgment, 
-            status,
-            costDiff: costDiff, 
-            userAgent: navigator.userAgent,
-            sessionId: currentSessionId,
-            inputStartTime: new Date(inputStartTime).toISOString(),
-            diagnoseClickTime: new Date(diagnoseClickTime).toISOString(),
-            isSimulation: isSimulation,
-            memo: ""
-          }),
-        });
+  // !!!! 중요: 이 URL을 당신의 Cloudflare Worker URL로 변경하세요. !!!!
+  const googleScriptURL = "https://throbbing-block-3ed5.kknnd0728.workers.dev"; 
+  // 이 부분을 당신이 받은 URL로 변경하세요.
+    
+  try {
+    const response = await fetch(googleScriptURL, { 
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain", // <--- 여기를 "text/plain"으로 최종 변경합니다!
+      },
+      body: JSON.stringify({ // JSON.stringify는 그대로 사용하여 데이터를 JSON 문자열로 변환합니다.
+        categoryVal,
+        subcategoryVal,
+        area,
+        contract,
+        maxUsage,
+        is24h,
+        recommendedPower: finalRecommendedPower, 
+        diff: diffForJudgment, 
+        status,
+        costDiff: costDiff, 
+        userAgent: navigator.userAgent,
+        sessionId: currentSessionId,
+        inputStartTime: new Date(inputStartTime).toISOString(),
+        diagnoseClickTime: new Date(diagnoseClickTime).toISOString(),
+        isSimulation: isSimulation,
+        memo: ""
+      }),
+    });
 
-        if (!response.ok) { 
-            const errorData = await response.text(); 
-            throw new Error(`HTTP error! status: ${response.status}, message: ${errorData}`);
-        }
-       
-        const resultText = await response.text();
-        console.log("데이터 전송 성공:", resultText);
+    if (!response.ok) { 
+        const errorData = await response.text(); 
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData}`);
+    }
+    
+    const resultText = await response.text();
+    console.log("데이터 전송 성공:", resultText);
 
-      } catch (error) {
-        console.error("데이터 전송 실패:", error);
-        alert('데이터 전송 오류가 발생했습니다. 잠시 후 다시 시도해주세요. (콘솔 로그 확인 필요)'); 
-      }
-    }
+  } catch (error) {
+    console.error("데이터 전송 실패:", error);
+    alert('데이터 전송 오류가 발생했습니다. 잠시 후 다시 시도해주세요. (콘솔 로그 확인 필요)'); 
+  }
+}
 
-    detailBtn.addEventListener('click', () => {
-      const details = document.getElementById('details');
-      if (details.classList.contains('hidden')) {
-        details.classList.remove('hidden');
-        detailBtn.innerText = '🔽 계산 결과 숨기기';
-      } else {
-        details.classList.add('hidden');
-        detailBtn.innerText = '🔍 계산 결과 상세보기';      
-      }
-    });
+detailBtn.addEventListener('click', () => {
+  const details = document.getElementById('details');
+  if (details.classList.contains('hidden')) {
+    details.classList.remove('hidden');
+    detailBtn.innerText = '🔽 계산 결과 숨기기';
+  } else {
+    details.classList.add('hidden');
+    detailBtn.innerText = '🔍 계산 결과 상세보기'; 
+  }
+});
 
-    diagnoseBtn.addEventListener('click', () => diagnose(false)); 
-    simulateBtn.addEventListener('click', () => diagnose(true));
+diagnoseBtn.addEventListener('click', () => diagnose(false)); 
+simulateBtn.addEventListener('click', () => diagnose(true));
 
-    // --- START: Added Code for Enter Key Navigation ---
-    const formElementsForEnterNav = [
-        document.getElementById('category'),
-        document.getElementById('subcategory'),
-        document.getElementById('area'),
-        document.getElementById('contractPower'),
-        document.getElementById('maxUsage')
-    ];
+// --- START: Added Code for Enter Key Navigation ---
+const formElementsForEnterNav = [
+    document.getElementById('category'),
+    document.getElementById('subcategory'),
+    document.getElementById('area'),
+    document.getElementById('contractPower'),
+    document.getElementById('maxUsage')
+];
 
-    function handleEnterNavigation(event) {
-        // 'Enter' 키의 keyCode는 13입니다.
-        if (event.key === 'Enter' || event.keyCode === 13) {
-            event.preventDefault(); // 기본 동작(예: 폼 제출) 방지
+function handleEnterNavigation(event) {
+    // 'Enter' 키의 keyCode는 13입니다.
+    if (event.key === 'Enter' || event.keyCode === 13) {
+        event.preventDefault(); // 기본 동작(예: 폼 제출) 방지
 
-            const currentElement = event.target;
-            const subcategoryDiv = document.getElementById('subcategoryDiv');
+        const currentElement = event.target;
+        const subcategoryDiv = document.getElementById('subcategoryDiv');
 
-            // 내비게이션 순서를 정의하고, '세부 업종'이 보일 때만 동적으로 포함합니다.
-            const navigationOrder = [
-                document.getElementById('category'),
-                ...(subcategoryDiv.classList.contains('hidden') ? [] : [document.getElementById('subcategory')]),
-                document.getElementById('area'),
-                document.getElementById('contractPower'),
-                document.getElementById('maxUsage'),
-                document.getElementById('privacyConsent') // 최종 목적지
-            ];
+        // 내비게이션 순서를 정의하고, '세부 업종'이 보일 때만 동적으로 포함합니다.
+        const navigationOrder = [
+            document.getElementById('category'),
+            ...(subcategoryDiv.classList.contains('hidden') ? [] : [document.getElementById('subcategory')]),
+            document.getElementById('area'),
+            document.getElementById('contractPower'),
+            document.getElementById('maxUsage'),
+            document.getElementById('privacyConsent') // 최종 목적지
+        ];
 
-            const currentIndex = navigationOrder.indexOf(currentElement);
+        const currentIndex = navigationOrder.indexOf(currentElement);
 
-            // 현재 요소를 찾았고 마지막이 아니라면 다음 요소로 포커스를 이동합니다.
-            if (currentIndex > -1 && currentIndex < navigationOrder.length - 1) {
-                const nextElement = navigationOrder[currentIndex + 1];
-                if (nextElement) {
-                    nextElement.focus();
-                }
-            }
-        }
-    }
+        // 현재 요소를 찾았고 마지막이 아니라면 다음 요소로 포커스를 이동합니다.
+        if (currentIndex > -1 && currentIndex < navigationOrder.length - 1) {
+            const nextElement = navigationOrder [currentIndex + 1];
+            if (nextElement) {
+                nextElement.focus();
+            }
+        }
+    }
 
-    // 관련된 모든 폼 요소에 이벤트 리스너를 추가합니다.
-    formElementsForEnterNav.forEach(element => {
-        element.addEventListener('keydown', handleEnterNavigation);
-    });
-    // --- END: Added Code for Enter Key Navigation ---
+    // 관련된 모든 폼 요소에 이벤트 리스너를 추가합니다.
+    formElementsForEnterNav.forEach(element => {
+        element.addEventListener('keydown', handleEnterNavigation);
+    });
+    // --- END: Added Code for Enter Key Navigation ---
 
-    updateButtonState();
-  </script>
+    updateButtonState();
+
+
 </body>
 </html>
