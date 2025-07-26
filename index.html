@@ -258,7 +258,7 @@
     const privacyConsent = document.getElementById('privacyConsent');
     const detailBtn = document.getElementById('detailBtn');
     const maxUsageInput = document.getElementById('maxUsage'); // maxUsage input 엘리먼트 가져오기
-    const is24hCheckbox = document.getElementById('is24h'); // is24h checkbox 엘리먼트 가져오기
+    // const is24hCheckbox = document.getElementById('is24h'); // is24h checkbox 엘리먼트 가져오기 - 더 이상 사용하지 않음
 
 
     const inputStartTime = Date.now();
@@ -359,6 +359,7 @@
     async function diagnose(isSimulation = false) {  
       if (!privacyConsent.checked) {
         alert('정보 수집 및 이용에 동의해야 진단을 진행할 수 있습니다.');
+        privacyConsent.focus(); // 동의 체크박스로 포커스 이동
         return;
       }
 
@@ -479,8 +480,8 @@
         ${note}
       `;
 
-      // 결과 섹션으로 스크롤
-      result.scrollIntoView({ behavior: 'smooth' });
+      // 결과 섹션과 상세 결과 보기 버튼이 함께 보이도록 스크롤 위치 조정
+      result.scrollIntoView({ behavior: 'smooth', block: 'start' }); // 결과 섹션의 시작이 화면 상단에 오도록
 
       if (!isSimulation) {
           sessionStorage.setItem('firstDiagnosisDone', 'true');
@@ -539,11 +540,11 @@
       }
     }
 
-    // maxUsage 입력 후 Enter 또는 Tab 누르면 24시간 운영 체크박스로 이동
+    // maxUsage 입력 후 Enter 또는 Tab 누르면 정보제공 동의 체크박스로 이동
     maxUsageInput.addEventListener('keydown', (event) => {
         if (event.keyCode === 13 || event.keyCode === 9) { // Enter or Tab key
             event.preventDefault(); // 기본 동작 방지 (줄바꿈 또는 다음 요소 이동)
-            is24hCheckbox.focus(); // 체크박스로 포커스 이동
+            privacyConsent.focus(); // 정보제공 동의 체크박스로 포커스 이동
         }
     });
 
