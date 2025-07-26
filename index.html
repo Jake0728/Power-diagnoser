@@ -203,7 +203,7 @@
   </div>
   <div class="form-group hidden" id="subcategoryDiv">
     <label for="subcategory">세부 업종 <span style="color:red;">*</span></label>
-    <input type="text" id="subcategory" placeholder="한식, 치킨, 카페 등" aria-required="true" />
+    <input type="text" id="subcategory" placeholder="한식, 치킨, 카페 등" aria-required="true" lang="ko" inputmode="text" />
     <div class="hint hidden" id="subcategoryError">세부 업종을 입력해주세요.</div>
   </div>
   <div class="form-group">
@@ -478,8 +478,7 @@
         ${note}
       `;
 
-      // 결과 섹션과 상세 결과 보기 버튼이 함께 보이도록 스크롤 위치 조정
-      // result 섹션이 화면 중앙에 오도록 스크롤합니다.
+      // 결과 섹션이 화면 중앙에 오도록 스크롤하여 상세 보기 버튼도 잘 보이도록 조정
       result.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
 
       if (!isSimulation) {
@@ -540,10 +539,10 @@
     }
 
     // 일반 텍스트 입력 후 Enter 누르면 다음 입력 필드로 이동 (maxUsage는 예외 처리)
-    const formInputs = document.querySelectorAll('input[type="text"], input[type="number"], select');
+    const formInputs = Array.from(document.querySelectorAll('input[type="text"], input[type="number"], select'));
     formInputs.forEach((input, index) => {
         if (input.id === 'maxUsage') {
-            // maxUsage는 별도로 처리하므로 건너_기
+            // maxUsage는 별도로 처리하므로 건너뛰기
             return;
         }
 
@@ -551,13 +550,15 @@
             if (event.keyCode === 13) { // Enter key
                 event.preventDefault();
                 let nextIndex = index + 1;
-                while (nextIndex < formInputs.length && formInputs[nextIndex].closest('.hidden')) {
-                    nextIndex++; // 숨겨진 필드는 건너뛰기
+                // 숨겨진 필드 또는 버튼은 건너뛰고 다음 입력 가능한 요소로 이동
+                while (nextIndex < formInputs.length && 
+                       (formInputs[nextIndex].closest('.hidden') || formInputs[nextIndex].tagName === 'BUTTON')) {
+                    nextIndex++; 
                 }
                 if (nextIndex < formInputs.length) {
                     formInputs[nextIndex].focus();
                 } else {
-                    // 마지막 필드인 경우 진단하기 버튼으로 포커스
+                    // 마지막 입력 필드인 경우 진단하기 버튼으로 포커스
                     diagnoseBtn.focus();
                 }
             }
@@ -569,6 +570,30 @@
         if (event.keyCode === 13 || event.keyCode === 9) { // Enter or Tab key
             event.preventDefault(); // 기본 동작 방지 (줄바꿈 또는 다음 요소 이동)
             privacyConsent.focus(); // 정보제공 동의 체크박스로 포커스 이동
+        }
+    });
+
+    // 진단하기 버튼 Enter 키로 실행
+    diagnoseBtn.addEventListener('keydown', (event) => {
+        if (event.keyCode === 13) {
+            event.preventDefault();
+            diagnoseBtn.click();
+        }
+    });
+
+    // 재진단 버튼 Enter 키로 실행
+    simulateBtn.addEventListener('keydown', (event) => {
+        if (event.keyCode === 13) {
+            event.preventDefault();
+            simulateBtn.click();
+        }
+    });
+
+    // 상세 결과 보기 버튼 Enter 키로 실행
+    detailBtn.addEventListener('keydown', (event) => {
+        if (event.keyCode === 13) {
+            event.preventDefault();
+            detailBtn.click();
         }
     });
 
