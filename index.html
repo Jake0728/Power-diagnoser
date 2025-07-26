@@ -27,8 +27,7 @@
     }
     input[type="text"],
     input[type="number"], 
-    select,
-    textarea { /* textarea 추가 */
+    select {
       width: 100%;
       padding: 10px 36px 10px 10px;
       margin-top: 5px;
@@ -36,11 +35,6 @@
       border-radius: 6px;
       font-size: 1em;
       box-sizing: border-box;
-    }
-    textarea { /* textarea 전용 스타일 */
-        padding: 10px;
-        min-height: 80px;
-        resize: vertical;
     }
     .unit {
       position: absolute;
@@ -83,7 +77,7 @@
       background-color: #cccccc;
       cursor: not-allowed;
     }
-    .result, .details, .feedback-section { /* feedback-section 추가 */
+    .result, .details {
       background: white;
       padding: 16px;
       border-radius: 8px;
@@ -153,32 +147,6 @@
         width: auto;
         flex-shrink: 0;
     }
-    /* 추가된 스타일 */
-    #newContractPowerInputGroup {
-        margin-top: 15px;
-        padding-top: 15px;
-        border-top: 1px solid #eee;
-    }
-    #newContractPowerInputGroup label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: bold;
-    }
-    #newContractPowerInputGroup input {
-        margin-bottom: 10px;
-    }
-    #feedbackSection {
-        margin-top: 25px;
-        padding-top: 15px;
-        border-top: 1px solid #eee;
-    }
-    #feedbackSection h3 {
-        margin-top: 0;
-        margin-bottom: 10px;
-        color: #007bff;
-        text-align: center;
-    }
-
 
     @media (max-width: 480px) {
       body {
@@ -186,8 +154,7 @@
       }
       input[type="text"],
       input[type="number"], 
-      select,
-      textarea { /* textarea 추가 */
+      select {
         padding: 10px 30px 10px 10px;
       }
       .unit {
@@ -275,29 +242,12 @@
   </div>
 
   <button id="diagnoseBtn">📊 진단하기</button>
-  <button id="simulateBtn" class="hidden">🔄 현재 조건으로 재진단</button>
+  <button id="simulateBtn" class="hidden">🔄 조건 변경 후 재진단</button>
 
-  <div class="result hidden" id="result" role="region" aria-live="polite" aria-atomic="true">
-    <div id="newContractPowerInputGroup" class="hidden">
-        <label for="newContractPower">새로운 계약전력으로 시뮬레이션:</label>
-        <input type="number" id="newContractPower" placeholder="변경할 계약 전력 (kW)" min="1" inputmode="numeric" pattern="[0-9]*"/>
-        <div class="hint hidden" id="newContractPowerError">새로운 계약 전력을 1 이상의 숫자로 입력해주세요.</div>
-        <button id="changePowerBtn" style="background-color: #28a745;">확인</button>
-    </div>
-  </div>
+  <div class="result hidden" id="result" role="region" aria-live="polite" aria-atomic="true"></div>
   <button class="hidden" id="detailBtn">🔍 계산 결과 상세보기</button>
   <div class="details hidden" id="details"></div>
   <div class="info-note hidden"></div>
-
-  <div class="feedback-section hidden" id="feedbackSection">
-    <h3>✨ 진단 결과에 대한 의견 남기기</h3>
-    <div class="form-group">
-        <textarea id="feedbackText" placeholder="진단 결과에 대한 의견이나 추가적으로 궁금한 점을 남겨주세요 (1000자 이내)."></textarea>
-        <div class="hint hidden" id="feedbackError">의견을 입력해주세요 (1000자 이내).</div>
-    </div>
-    <button id="feedbackBtn">의견 제출</button>
-  </div>
-
 
   <script>
     const category = document.getElementById('category');
@@ -307,14 +257,8 @@
     const simulateBtn = document.getElementById('simulateBtn');
     const privacyConsent = document.getElementById('privacyConsent');
     const detailBtn = document.getElementById('detailBtn');
-    const newContractPowerInputGroup = document.getElementById('newContractPowerInputGroup');
-    const newContractPowerInput = document.getElementById('newContractPower');
-    const newContractPowerError = document.getElementById('newContractPowerError');
-    const changePowerBtn = document.getElementById('changePowerBtn');
-    const feedbackSection = document.getElementById('feedbackSection');
-    const feedbackText = document.getElementById('feedbackText');
-    const feedbackError = document.getElementById('feedbackError');
-    const feedbackBtn = document.getElementById('feedbackBtn');
+    const maxUsageInput = document.getElementById('maxUsage'); // maxUsage input 엘리먼트 가져오기
+    const is24hCheckbox = document.getElementById('is24h'); // is24h checkbox 엘리먼트 가져오기
 
 
     const inputStartTime = Date.now();
@@ -412,8 +356,7 @@
       return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
 
-    // simulationType 인자를 추가하여 어떤 종류의 시뮬레이션인지 구분합니다.
-    async function diagnose(isSimulation = false, simulationType = 'normal') { 
+    async function diagnose(isSimulation = false) {  
       if (!privacyConsent.checked) {
         alert('정보 수집 및 이용에 동의해야 진단을 진행할 수 있습니다.');
         return;
@@ -534,27 +477,10 @@
         <div>④ ${feeText}</div>
         ${caution}
         ${note}
-        <div id="newContractPowerInputGroup">
-            <label for="newContractPower">새로운 계약전력으로 시뮬레이션:</label>
-            <input type="number" id="newContractPower" placeholder="변경할 계약 전력 (kW)" min="1" inputmode="numeric" pattern="[0-9]*"/>
-            <div class="hint hidden" id="newContractPowerError">새로운 계약 전력을 1 이상의 숫자로 입력해주세요.</div>
-            <button id="changePowerBtn" style="background-color: #28a745;">확인</button>
-        </div>
       `;
 
-      // 계약전력 변경 시뮬레이션 버튼에 클릭 이벤트 리스너 다시 연결
-      document.getElementById('changePowerBtn').addEventListener('click', () => {
-        const newPowerVal = newContractPowerInput.value;
-        if (newPowerVal.trim() === '' || parseInt(newPowerVal) < 1) {
-            newContractPowerError.classList.remove('hidden');
-            return;
-        } else {
-            newContractPowerError.classList.add('hidden');
-        }
-        document.getElementById('contractPower').value = newPowerVal; // 기존 계약전력 필드 업데이트
-        diagnose(true, 'changePower'); // 변경된 계약전력으로 재진단
-      });
-
+      // 결과 섹션으로 스크롤
+      result.scrollIntoView({ behavior: 'smooth' });
 
       if (!isSimulation) {
           sessionStorage.setItem('firstDiagnosisDone', 'true');
@@ -568,17 +494,11 @@
       document.getElementById('details').classList.add('hidden');
       
       document.getElementById('details').innerHTML = detailsHtmlContent;
-      feedbackSection.classList.remove('hidden'); // 피드백 섹션 표시
 
       // !!!! 중요: 이 URL을 당신의 Cloudflare Worker URL로 변경하세요. !!!!
       const googleScriptURL = "https://throbbing-block-3ed5.kknnd0728.workers.dev";  
       // 이 부분을 당신이 받은 URL로 변경하세요.
         
-      let memoText = "";
-      if (simulationType === 'changePower') {
-          memoText = "계약전력 변경 시뮬레이션";
-      }
-
       try {
         const response = await fetch(googleScriptURL, {  
           method: "POST",
@@ -601,7 +521,7 @@
             inputStartTime: new Date(inputStartTime).toISOString(),
             diagnoseClickTime: new Date(diagnoseClickTime).toISOString(),
             isSimulation: isSimulation,
-            memo: memoText // memo 필드에 simulationType에 따른 텍스트 추가
+            memo: ""
           }),
         });
 
@@ -619,11 +539,21 @@
       }
     }
 
+    // maxUsage 입력 후 Enter 또는 Tab 누르면 24시간 운영 체크박스로 이동
+    maxUsageInput.addEventListener('keydown', (event) => {
+        if (event.keyCode === 13 || event.keyCode === 9) { // Enter or Tab key
+            event.preventDefault(); // 기본 동작 방지 (줄바꿈 또는 다음 요소 이동)
+            is24hCheckbox.focus(); // 체크박스로 포커스 이동
+        }
+    });
+
     detailBtn.addEventListener('click', () => {
       const details = document.getElementById('details');
       if (details.classList.contains('hidden')) {
         details.classList.remove('hidden');
         detailBtn.innerText = '🔽 계산 결과 숨기기';
+        // 상세 결과 섹션으로 스크롤
+        details.scrollIntoView({ behavior: 'smooth' });
       } else {
         details.classList.add('hidden');
         detailBtn.innerText = '🔍 계산 결과 상세보기';        
@@ -632,61 +562,6 @@
 
     diagnoseBtn.addEventListener('click', () => diagnose(false));  
     simulateBtn.addEventListener('click', () => diagnose(true));
-
-    // 피드백 제출 버튼 이벤트 리스너
-    feedbackBtn.addEventListener('click', async () => {
-        const feedback = feedbackText.value.trim();
-        if (feedback.length === 0 || feedback.length > 1000) {
-            feedbackError.classList.remove('hidden');
-            return;
-        } else {
-            feedbackError.classList.add('hidden');
-        }
-
-        // !!!! 중요: 이 URL을 당신의 Cloudflare Worker URL로 변경하세요. !!!!
-        const googleScriptURL = "https://throbbing-block-3ed5.kknnd0728.workers.dev";
-        
-        try {
-            const response = await fetch(googleScriptURL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "text/plain",
-                },
-                body: JSON.stringify({
-                    categoryVal: category.value.trim(),
-                    subcategoryVal: subInput.value.trim(),
-                    area: parseInt(document.getElementById('area').value),
-                    contract: parseInt(document.getElementById('contractPower').value),
-                    maxUsage: parseInt(document.getElementById('maxUsage').value),
-                    is24h: document.getElementById('is24h').checked,
-                    recommendedPower: 0, // 피드백 전송 시에는 0 또는 null
-                    diff: 0, // 피드백 전송 시에는 0 또는 null
-                    status: "feedback", // 피드백임을 나타내는 상태
-                    costDiff: 0, // 피드백 전송 시에는 0 또는 null
-                    userAgent: navigator.userAgent,
-                    sessionId: currentSessionId,
-                    inputStartTime: new Date(inputStartTime).toISOString(),
-                    diagnoseClickTime: new Date().toISOString(), // 현재 시간 기록
-                    isSimulation: false,
-                    memo: "사용자 피드백: " + feedback // 메모 필드에 피드백 내용 추가
-                }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.text();
-                throw new Error(`HTTP error! status: ${response.status}, message: ${errorData}`);
-            }
-
-            const resultText = await response.text();
-            console.log("피드백 전송 성공:", resultText);
-            alert("의견이 성공적으로 제출되었습니다. 감사합니다!");
-            feedbackText.value = ''; // 텍스트 영역 초기화
-
-        } catch (error) {
-            console.error("피드백 전송 실패:", error);
-            alert('의견 전송 오류가 발생했습니다. 잠시 후 다시 시도해주세요. (콘솔 로그 확인 필요)');
-        }
-    });
 
     updateButtonState();
   </script>
