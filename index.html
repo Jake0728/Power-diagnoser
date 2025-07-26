@@ -333,19 +333,18 @@
         병의원: '이비인후과, 치과, 소아과, 한의원, 약국',
         기타: '부동산 중개, 미용실, 무인 세탁소'
       };
-      if (category.value) { // 이 조건문이 중요합니다. category.value가 비어있지 않을 때만 subDiv를 보여줍니다.
-        subDiv.classList.remove('hidden'); // 'hidden' 클래스를 제거하여 보이게 합니다.
+      if (category.value) {
+        subDiv.classList.remove('hidden');
         subInput.placeholder = placeholders[category.value] || '';
       } else {
-        subDiv.classList.add('hidden'); // category.value가 비어있으면 다시 숨깁니다.
+        subDiv.classList.add('hidden');
         subInput.value = ''; 
       }
-      // 세부 업종 필드 유효성 검사도 여기서 다시 수행하여 에러 메시지를 업데이트합니다.
-      validateField(fieldsToValidate[0]); // 카테고리 유효성 재검사
+      validateField(fieldsToValidate[0]);
       if (!category.value) { 
-        errors.subcategoryError.classList.add('hidden'); // 카테고리가 비어있으면 세부업종 에러도 숨김
+        errors.subcategoryError.classList.add('hidden');
       } else {
-        validateField(fieldsToValidate[1]); // 세부업종 유효성 재검사 (이제 보이니까)
+        validateField(fieldsToValidate[1]);
       }
     });
 
@@ -353,7 +352,7 @@
       return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
 
-    async function diagnose(isSimulation = false) { // async 키워드 추가
+    async function diagnose(isSimulation = false) { 
       if (!privacyConsent.checked) {
         alert('정보 수집 및 이용에 동의해야 진단을 진행할 수 있습니다.');
         return;
@@ -494,14 +493,12 @@
       const googleScriptURL = "https://script.google.com/macros/s/AKfycbw4DTmN9tTqs6dNGXvpmNyvLrn_jR2UnDF_qlPYiNKpZmrSdFXhbKow7t6iKvCXtoW5/exec";
         
       try {
-        const response = await fetch(googleScriptURL, { // await 키워드 추가
+        const response = await fetch(googleScriptURL, { 
           method: "POST",
           headers: {
-            // Apps Script에서 CORS를 처리하도록 했지만,
-            // 여전히 문제가 발생한다면 'Content-Type'을 'text/plain'으로 변경하여 사전 요청(preflight)을 우회합니다.
-            "Content-Type": "text/plain", // 여기를 "text/plain"으로 변경합니다!
+            "Content-Type": "text/plain", // <--- 여기를 "text/plain"으로 최종 변경합니다!
           },
-          body: JSON.stringify({ // JSON.stringify는 그대로 사용합니다.
+          body: JSON.stringify({ // JSON.stringify는 그대로 사용하여 데이터를 JSON 문자열로 변환합니다.
             categoryVal,
             subcategoryVal,
             area,
@@ -522,16 +519,12 @@
         });
 
         if (!response.ok) { 
-            // 서버 응답이 성공(2xx)이 아닐 경우
-            const errorText = await response.text(); // 응답 본문을 텍스트로 받아서 확인
-            console.error("서버 응답 오류:", errorText);
-            throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorText}`);
+            const errorData = await response.text(); 
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorData}`);
         }
         
-        // Google Apps Script에서 성공 시 JSON 응답을 보내므로, JSON으로 파싱합니다.
-        const resultData = await response.json(); 
-        console.log("데이터 전송 성공:", resultData);
-        // 필요하다면 resultData.status, resultData.message 등을 활용하여 사용자에게 피드백 제공
+        const resultText = await response.text();
+        console.log("데이터 전송 성공:", resultText);
 
       } catch (error) {
         console.error("데이터 전송 실패:", error);
