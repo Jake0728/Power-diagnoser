@@ -55,10 +55,10 @@
         .hidden-transition {
             opacity: 0;
             height: 0;
-            margin-top: 0;
-            margin-bottom: 0;
-            padding-top: 0;
-            padding-bottom: 0;
+            margin-top: 0 !important; /* 강제 적용 */
+            margin-bottom: 0 !important; /* 강제 적용 */
+            padding-top: 0 !important; /* 강제 적용 */
+            padding-bottom: 0 !important; /* 강제 적용 */
             overflow: hidden;
             transition: opacity 0.3s ease-in-out, height 0.3s ease-in-out, 
                         margin 0.3s ease-in-out, padding 0.3s ease-in-out;
@@ -67,14 +67,11 @@
         .visible-transition {
             opacity: 1;
             height: auto;
-            /* Restore original margins/paddings if needed, or define specific ones */
-            margin-top: 16px; /* Default margin for form-groups etc. */
-            margin-bottom: 16px;
-            padding-top: initial;
-            padding-bottom: initial;
             visibility: visible;
+            /* 기본 마진/패딩은 요소 자체의 스타일에서 정의하거나, 여기서 오버라이드. */
+            /* 예: .form-group은 margin-bottom: 16px; 를 유지 */
         }
-        /* Specific overrides for .form-group which should always be display: block */
+        /* Specific overrides for elements that should always be display: block when visible */
         .form-group.visible-transition, 
         .checkbox-container.visible-transition,
         .consent-group.visible-transition,
@@ -88,14 +85,10 @@
             /* Base styles for hint - will be overridden by transition classes */
         }
         /* Hint specific transition classes - inherit from general */
-        .hint.hidden-transition {
-            /* Inherits from .hidden-transition, ensures it collapses */
-        }
         .hint.visible-transition {
-            margin-top: 4px;
-            margin-bottom: 8px;
+            margin-top: 4px !important;
+            margin-bottom: 8px !important;
         }
-
 
         button {
             background-color: #007bff;
@@ -106,7 +99,7 @@
             font-size: 0.95em;
             border-radius: 6px;
             cursor: pointer;
-            margin-top: 8px;
+            margin-top: 8px; /* 버튼의 기본 상단 마진 */
         }
         button:hover:not(:disabled) {
             background-color: #0056b3;
@@ -153,8 +146,7 @@
             color: #d33;
         }
         .checkbox-container {
-            margin-top: 0px; /* Adjust as needed with visible-transition */
-            margin-bottom: 16px; /* Adjust as needed with visible-transition */
+            margin-bottom: 16px; 
         }
         label.checkbox-label {
             display: inline-flex;
@@ -168,22 +160,24 @@
         .info-note {
             font-size: 0.75em;
             color: #888;
-            margin-top: 40px; /* Adjust as needed with visible-transition */
+            margin-top: 40px; 
             text-align: center;
             user-select: none;
         }
         .consent-group {
-            margin-top: 20px; /* Adjust as needed with visible-transition */
+            margin-top: 20px; /* 고정 */
+            margin-bottom: 20px; /* 추가 */
             background-color: #e9e9e9;
-            padding: 12px;
+            padding: 12px; /* 고정 */
             border-radius: 8px;
             font-size: 0.9em;
             line-height: 1.5;
             color: #555;
+            display: block; /* 항상 보이므로 명시적으로 block */
         }
         .consent-group label {
             font-weight: normal;
-            display: flex;
+            display: flex; /* Flexbox로 내부 정렬 */
             align-items: flex-start;
             gap: 8px;
             cursor: pointer;
@@ -192,7 +186,9 @@
         .consent-group input[type="checkbox"] {
             margin-top: 3px;
             width: auto;
-            flex-shrink: 0;
+            flex-shrink: 0; /* 체크박스 축소 방지 */
+            min-width: 16px; /* 최소 너비 지정 */
+            min-height: 16px; /* 최소 높이 지정 */
         }
 
         @media (max-width: 480px) {
@@ -225,13 +221,18 @@
                 margin-bottom: 15px;
                 padding: 10px;
             }
+            .consent-group {
+                margin-top: 15px;
+                margin-bottom: 15px;
+                padding: 10px;
+            }
         }
     </style>
 </head>
 <body>
     <h1>⚡ 계약전력 진단기</h1>
     <div class="disclaimer">
-        <strong>🚨 본 진단기는 한전(한국전력공사)의 공식 서비스가 아닙니다.</strong><br>
+        <strong>🚨 본 진단기는 한전(한국전력공사의) 공식 서비스가 아닙니다.</strong><br>
         제공되는 정보는 단순 참고용이며, 계약전력 변경은 반드시 전문가와 상담 후 신중히 결정하세요.<br>
         이용으로 발생하는 피해에 대해 개발자는 책임지지 않습니다.
     </div>
@@ -286,10 +287,9 @@
             <input type="checkbox" id="privacyConsent" />
             <span>위 정보 수집 및 이용에 동의합니다.</span>
         </label>
+        <button id="diagnoseBtn">📊 진단하기</button>
+        <button id="simulateBtn" class="hidden-transition">🔄 조건 변경 후 재진단</button>
     </div>
-
-    <button id="diagnoseBtn">📊 진단하기</button>
-    <button id="simulateBtn" class="hidden-transition">🔄 조건 변경 후 재진단</button>
 
     <div class="result hidden-transition" id="result" role="region" aria-live="polite" aria-atomic="true"></div>
     <button class="hidden-transition" id="detailBtn">🔍 계산 결과 상세보기</button>
@@ -344,21 +344,30 @@
 
         // Helper function to scroll to the next element
         function scrollToNextElement(currentElement) {
+            // 모든 스크롤 가능한 요소를 순서대로 가져옵니다.
             const allScrollTargets = Array.from(document.querySelectorAll(
-                '.form-group, .checkbox-container, .consent-group, button:not(.hidden-transition)'
+                '.form-group, .checkbox-container, .consent-group, .consent-group button' // 버튼도 스크롤 대상으로 포함
             ));
             
-            const currentElementGroup = currentElement.closest('.form-group, .checkbox-container, .consent-group, button');
+            // 현재 요소의 가장 가까운 스크롤 가능한 그룹을 찾습니다.
+            const currentElementGroup = currentElement.closest('.form-group, .checkbox-container, .consent-group, .consent-group button');
             if (!currentElementGroup) return;
 
             const currentIndex = allScrollTargets.indexOf(currentElementGroup);
             if (currentIndex > -1 && currentIndex + 1 < allScrollTargets.length) {
                 let nextElementGroup = allScrollTargets[currentIndex + 1];
 
-                // Special handling for subcategoryDiv
+                // subcategoryDiv가 숨겨져 있다면 건너뜁니다.
                 if (nextElementGroup.id === 'subcategoryDiv' && nextElementGroup.classList.contains('hidden-transition')) {
-                    // If subcategoryDiv is hidden, skip it
-                    nextElementGroup = allScrollTargets[currentIndex + 2]; // Assume next is area
+                    nextElementGroup = allScrollTargets[currentIndex + 2]; 
+                }
+                
+                // 정보동의 체크박스를 클릭했을 때 바로 진단하기/재진단 버튼으로 스크롤
+                if (currentElement.id === 'privacyConsent') {
+                    const targetButton = diagnoseBtn.classList.contains('hidden-transition') ? simulateBtn : diagnoseBtn;
+                    targetButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetButton.focus();
+                    return; // 이미 스크롤했으므로 여기서 함수 종료
                 }
 
                 if (nextElementGroup && !nextElementGroup.classList.contains('hidden-transition')) {
@@ -424,15 +433,13 @@
             }
         });
 
-        // Scroll to button when consent is checked
+        // privacyConsent 체크박스 변경 시 버튼 상태 업데이트 및 스크롤
         privacyConsent.addEventListener('change', () => {
             updateButtonState();
             if (privacyConsent.checked) {
-                setTimeout(() => {
-                    const targetButton = diagnoseBtn.classList.contains('hidden-transition') ? simulateBtn : diagnoseBtn;
-                    targetButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    targetButton.focus(); // Focus the button
-                }, 100);
+                const targetButton = diagnoseBtn.classList.contains('hidden-transition') ? simulateBtn : diagnoseBtn;
+                targetButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                targetButton.focus(); // Focus the button
             }
         });
 
@@ -442,12 +449,12 @@
 
             if (isConsentChecked) {
                 if (isFirstDiagnosisDone) {
-                    toggleVisibility(diagnoseBtn, false);
-                    toggleVisibility(simulateBtn, true);
+                    toggleVisibility(diagnoseBtn, false); // 진단하기 숨김
+                    toggleVisibility(simulateBtn, true); // 재진단 보임
                     simulateBtn.disabled = false;
                 } else {
-                    toggleVisibility(diagnoseBtn, true);
-                    toggleVisibility(simulateBtn, false);
+                    toggleVisibility(diagnoseBtn, true); // 진단하기 보임
+                    toggleVisibility(simulateBtn, false); // 재진단 숨김
                     diagnoseBtn.disabled = false;
                 }
             } else {
@@ -456,7 +463,7 @@
             }
         }
 
-        updateButtonState();
+        updateButtonState(); // 초기 버튼 상태 설정
 
         category.addEventListener('change', () => {
             const placeholders = {
@@ -617,22 +624,23 @@
                 ${note}
             `;
 
-            // **진단 후 결과 영역으로 스크롤 이동 (상세보기 버튼이 보이도록)**
-            toggleVisibility(detailBtn, true); // 먼저 보이게 한 후 스크롤
-            detailBtn.scrollIntoView({ behavior: 'smooth', block: 'end' }); // 버튼이 화면 하단에 보이도록
-
-            if (!isSimulation) {
-                sessionStorage.setItem('firstDiagnosisDone', 'true');
-                toggleVisibility(diagnoseBtn, false);
-                toggleVisibility(simulateBtn, true);
-                simulateBtn.disabled = false;
-            }
-
-            detailBtn.innerText = '🔍 계산 결과 상세보기';
-            toggleVisibility(document.getElementById('details'), false);
+            // 진단 후 상세보기 버튼과 결과 영역을 모두 보이게 하고 스크롤
+            toggleVisibility(detailBtn, true);
+            toggleVisibility(document.getElementById('details'), false); // 상세보기가 접힌 상태로 시작
+            
+            // 상세보기 버튼이 화면에 완전히 보이도록 스크롤
+            detailBtn.scrollIntoView({ behavior: 'smooth', block: 'end' }); 
             
             document.getElementById('details').innerHTML = detailsHtmlContent;
 
+            if (!isSimulation) {
+                sessionStorage.setItem('firstDiagnosisDone', 'true');
+                // 버튼 상태를 재진단 모드로 업데이트
+                updateButtonState(); 
+            }
+
+            detailBtn.innerText = '🔍 계산 결과 상세보기';
+            
             // !!!! 중요: 이 URL을 당신의 Cloudflare Worker URL로 변경하세요. !!!!
             const googleScriptURL = "https://throbbing-block-3ed5.kknnd0728.workers.dev";
             
@@ -672,7 +680,7 @@
 
             } catch (error) {
                 console.error("데이터 전송 실패:", error);
-                alert('데이터 전송 오류가 발생했습니다. 잠시 후 다시 시도해주세요. (콘솔 로그 확인 필요)');
+                //alert('데이터 전송 오류가 발생했습니다. 잠시 후 다시 시도해주세요. (콘솔 로그 확인 필요)');
             }
         }
 
@@ -690,18 +698,37 @@
         diagnoseBtn.addEventListener('click', () => diagnose(false));
         simulateBtn.addEventListener('click', () => diagnose(true));
 
-        // Initial setup for hidden elements
+        // Initial setup for hidden elements (ensure they start hidden)
         document.querySelectorAll('.hidden-transition').forEach(el => {
-            if (!el.classList.contains('visible-transition')) { // Only apply if not already visible by JS
-                el.style.height = '0';
-                el.style.opacity = '0';
-                el.style.visibility = 'hidden';
-                el.style.marginTop = '0';
-                el.style.marginBottom = '0';
-                el.style.paddingTop = '0';
-                el.style.paddingBottom = '0';
+            el.style.height = '0';
+            el.style.opacity = '0';
+            el.style.visibility = 'hidden';
+            el.style.marginTop = '0';
+            el.style.marginBottom = '0';
+            el.style.paddingTop = '0';
+            el.style.paddingBottom = '0';
+        });
+
+        // Ensure visible elements have correct margins/paddings
+        document.querySelectorAll('.visible-transition').forEach(el => {
+            if (el.classList.contains('form-group') || el.classList.contains('checkbox-container')) {
+                el.style.marginBottom = '16px';
+            }
+            if (el.classList.contains('consent-group')) {
+                el.style.marginTop = '20px';
+                el.style.marginBottom = '20px';
+                el.style.padding = '12px';
+            }
+            if (el.classList.contains('result')) {
+                el.style.marginTop = '20px';
+            }
+            if (el.classList.contains('details')) {
+                el.style.marginTop = '16px'; // or appropriate for details
             }
         });
+
+        // 초기 로드 시 `.hint` 요소는 `hidden-transition` 클래스를 가지고 시작하도록 HTML에서 직접 설정
+        // 이 스크립트에서는 `.hint` 요소의 초기 상태를 명시적으로 설정할 필요 없음
     </script>
 </body>
 </html>
