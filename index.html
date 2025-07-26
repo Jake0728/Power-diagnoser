@@ -250,6 +250,12 @@
   <div class="details hidden" id="details"></div>
   <div class="info-note hidden"></div>
   
+
+
+
+
+
+
 <script>
     const category = document.getElementById('category');
     const subDiv = document.getElementById('subcategoryDiv');
@@ -490,8 +496,7 @@
 
         document.getElementById('details').innerHTML = detailsHtmlContent;
 
-        // 결과 화면으로 스크롤 추가
-        // 여기에 변경된 스크롤 코드를 적용합니다.
+        // 진단 후 결과 화면으로 스크롤
         resultDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
 
@@ -513,7 +518,7 @@
                     maxUsage,
                     is24h,
                     recommendedPower: finalRecommendedPower,
-                    diff: diffForFeeCalculation, // 이전에 diffForJudgment로 되어있던 것을 diffForFeeCalculation으로 수정했습니다.
+                    diff: diffForFeeCalculation, 
                     status,
                     costDiff: costDiff,
                     userAgent: navigator.userAgent,
@@ -544,6 +549,8 @@
         if (details.classList.contains('hidden')) {
             details.classList.remove('hidden');
             detailBtn.innerText = '🔽 계산 결과 숨기기';
+            // 상세보기를 열 때 스크롤
+            details.scrollIntoView({ behavior: 'smooth', block: 'start' }); // 또는 'nearest'
         } else {
             details.classList.add('hidden');
             detailBtn.innerText = '🔍 계산 결과 상세보기';
@@ -600,6 +607,12 @@
 
     updateButtonState();
 </script>
+
+
+
+
+
+
 
 </body>
 </html>
