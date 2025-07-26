@@ -1,684 +1,701 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>계약전력 진단기</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      padding: 16px;
-      margin: 0;
-      background-color: #f4f4f4;
-      color: #333;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 10px;
-    }
-    .form-group {
-      margin-bottom: 16px;
-      position: relative;
-    }
-    label {
-      font-weight: bold;
-      display: inline-block;
-      margin-bottom: 4px;
-    }
-    input[type="text"],
-    input[type="number"], 
-    select {
-      width: 100%;
-      padding: 10px 36px 10px 10px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1em;
-      box-sizing: border-box;
-    }
-    .unit {
-      position: absolute;
-      right: 10px;
-      top: 38px;
-      font-size: 0.85em;
-      color: #666;
-      pointer-events: none;
-      user-select: none;
-    }
-    .inline-label {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: bold;
-    }
-    .hint {
-      color: #d33;
-      font-size: 0.85em;
-      margin-top: 4px;
-  	  margin-bottom: 8px;
-    }
-    .hidden {
-      display: none;
-  	  opacity: 0;
-  	  height: 0;
-  	  overflow: hidden;
-  	  transition: opacity 0.3s ease-in-out, height 0.3s ease-in-out;
-  	  visibility: hidden;
-  	}
-  	.visible {
-  	  opacity: 1;
-  	  height: auto;
-  	  visibility: visible;
-  	  display: block; /* Ensure it takes up space when visible */
-  	}
-  	.form-group.visible { /* Specific rule for form-group to ensure block display */
-  	  display: block;
-  	}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>계약전력 진단기</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            padding: 16px;
+            margin: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+            position: relative;
+        }
+        label {
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px 36px 10px 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        .unit {
+            position: absolute;
+            right: 10px;
+            top: 38px;
+            font-size: 0.85em;
+            color: #666;
+            pointer-events: none;
+            user-select: none;
+        }
+        .inline-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+        }
+        .hint {
+            color: #d33;
+            font-size: 0.85em;
+            margin-top: 4px;
+            margin-bottom: 8px;
+            /* opacity와 height만 트랜지션, display는 즉시 변경 */
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+            transition: opacity 0.3s ease-in-out, height 0.3s ease-in-out;
+            display: none; /* 기본적으로 숨김 */
+        }
+        .hint.visible {
+            opacity: 1;
+            height: auto;
+            display: block; /* 오류 메시지 보일 때 블록으로 */
+        }
+        /* Hidden elements for smooth transition */
+        .hidden-transition {
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+            transition: opacity 0.3s ease-in-out, height 0.3s ease-in-out;
+            visibility: hidden;
+            display: none; /* 기본적으로 숨김 */
+        }
+        /* Visible elements for smooth transition */
+        .visible-transition {
+            opacity: 1;
+            height: auto;
+            visibility: visible;
+            display: block; /* 보일 때 블록으로 */
+        }
 
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            font-size: 0.95em;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        button:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .result, .details {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            word-break: break-word;
+        }
+        .warning {
+            color: red;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .positive { /* Added for better distinction for positive outcomes */
+            color: green;
+            font-weight: bold;
+        }
+        .neutral { /* Added for better distinction for neutral outcomes */
+            color: blue;
+            font-weight: bold;
+        }
+        
+        .disclaimer {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            padding: 12px 15px;
+            background-color: #fffbe6;
+            border: 1px solid #ffe88a;
+            border-radius: 8px;
+            text-align: center;
+            line-height: 1.4;
+        }
+        .disclaimer strong {
+            color: #d33;
+        }
+        .checkbox-container {
+            margin-top: 0px;
+            margin-bottom: 16px;
+        }
+        label.checkbox-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+            font-weight: normal;
+        }
+        .info-note {
+            font-size: 0.75em;
+            color: #888;
+            margin-top: 40px;
+            text-align: center;
+            user-select: none;
+        }
+        .consent-group {
+            margin-top: 20px;
+            background-color: #e9e9e9;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            line-height: 1.5;
+            color: #555;
+        }
+        .consent-group label {
+            font-weight: normal;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .consent-group input[type="checkbox"] {
+            margin-top: 3px;
+            width: auto;
+            flex-shrink: 0;
+        }
 
-  	button {
-  	  background-color: #007bff;
-  	  color: white;
-  	  border: none;
-  	  padding: 12px;
-  	  width: 100%;
-  	  font-size: 0.95em;
-  	  border-radius: 6px;
-  	  cursor: pointer;
-  	  margin-top: 8px;
-  	}
-  	button:hover:not(:disabled) {
-  	  background-color: #0056b3;
-  	}
-  	button:disabled {
-  	  background-color: #cccccc;
-  	  cursor: not-allowed;
-  	}
-  	.result, .details {
-  	  background: white;
-  	  padding: 16px;
-  	  border-radius: 8px;
-  	  margin-top: 20px;
-  	  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  	  word-break: break-word;
-  	}
-  	.warning {
-  	  color: red;
-  	  font-weight: bold;
-  	  margin-bottom: 10px;
-  	}
-  	.positive { /* Added for better distinction for positive outcomes */
-  	  color: green;
-  	  font-weight: bold;
-  	}
-  	.neutral { /* Added for better distinction for neutral outcomes */
-  	  color: blue;
-  	  font-weight: bold;
-  	}
-  	
-  	.disclaimer {
-  	  font-size: 0.8em;
-  	  color: #666;
-  	  margin-top: 20px;
-  	  margin-bottom: 20px;
-  	  padding: 12px 15px;
-  	  background-color: #fffbe6;
-  	  border: 1px solid #ffe88a;
-  	  border-radius: 8px;
-  	  text-align: center;
-  	  line-height: 1.4;
-  	}
-  	.disclaimer strong {
-  	  color: #d33;
-  	}
-  	.checkbox-container {
-  	  margin-top: 0px; 
-  	  margin-bottom: 16px; 
-  	}
-  	label.checkbox-label {
-  	  display: inline-flex;
-  	  align-items: center;
-  	  gap: 6px;
-  	  white-space: nowrap;
-  	  cursor: pointer;
-  	  user-select: none;
-  	  font-weight: normal;
-  	}
-  	.info-note {
-  	  font-size: 0.75em;
-  	  color: #888;
-  	  margin-top: 40px;
-  	  text-align: center;
-  	  user-select: none;
-  	}
-  	.consent-group {
-  	  margin-top: 20px;
-  	  background-color: #e9e9e9;
-  	  padding: 12px;
-  	  border-radius: 8px;
-  	  font-size: 0.9em;
-  	  line-height: 1.5;
-  	  color: #555;
-  	}
-  	.consent-group label {
-  	  font-weight: normal;
-  	  display: flex;
-  	  align-items: flex-start;
-  	  gap: 8px;
-  	  cursor: pointer;
-  	  margin-top: 10px;
-  	}
-  	.consent-group input[type="checkbox"] {
-  	  margin-top: 3px;
-  	  width: auto;
-  	  flex-shrink: 0;
-  	}
-
-  	@media (max-width: 480px) {
-  	  body {
-  	    padding: 12px;
-  	  }
-  	  input[type="text"],
-  	  input[type="number"], 
-  	  select {
-  	    padding: 10px 30px 10px 10px;
-  	  }
-  	  .unit {
-  	    top: 36px;
-  	    font-size: 0.8em;
-  	    right: 8px;
-  	  }
-  	  button {
-  	    font-size: 0.9em;
-  	  }
-  	  .checkbox-container {
-  	    margin-top: 0px; 
-  	    margin-bottom: 12px; 
-  	  }
-  	  label.checkbox-label {
-  	    font-size: 0.9em;
-  	    gap: 4px;
-  	  }
-  	  .disclaimer {
-  	    margin-top: 15px;
-  	    margin-bottom: 15px;
-  	    padding: 10px;
-  	  }
-  	}
-  </style>
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+            input[type="text"],
+            input[type="number"],
+            select {
+                padding: 10px 30px 10px 10px;
+            }
+            .unit {
+                top: 36px;
+                font-size: 0.8em;
+                right: 8px;
+            }
+            button {
+                font-size: 0.9em;
+            }
+            .checkbox-container {
+                margin-top: 0px;
+                margin-bottom: 12px;
+            }
+            label.checkbox-label {
+                font-size: 0.9em;
+                gap: 4px;
+            }
+            .disclaimer {
+                margin-top: 15px;
+                margin-bottom: 15px;
+                padding: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <h1>⚡ 계약전력 진단기</h1>
-  <div class="disclaimer">
-    <strong>🚨 본 진단기는 한전(한국전력공사)의 공식 서비스가 아닙니다.</strong><br>
-    제공되는 정보는 단순 참고용이며, 계약전력 변경은 반드시 전문가와 상담 후 신중히 결정하세요.<br>
-    이용으로 발생하는 피해에 대해 개발자는 책임지지 않습니다.
-  </div>
-  <div class="form-group">
-    <label for="category">업종 분류 <span style="color:red;">*</span></label>
-    <select id="category" aria-required="true">
-      <option value="">-- 선택하세요 --</option>
-      <option value="음식">음식</option>
-      <option value="소매">소매</option>
-      <option value="교육">교육</option>
-      <option value="숙박">숙박</option>
-      <option value="병의원">병의원</option>
-      <option value="기타">기타</option>
-    </select>
-    <div class="hint hidden" id="categoryError">업종 분류를 선택해주세요.</div>
-  </div>
-  <div class="form-group hidden" id="subcategoryDiv">
-    <label for="subcategory">세부 업종 <span style="color:red;">*</span></label>
-    <input type="text" id="subcategory" placeholder="한식, 치킨, 카페 등" aria-required="true" />
-    <div class="hint hidden" id="subcategoryError">세부 업종을 입력해주세요.</div>
-  </div>
-  <div class="form-group">
-    <label for="area">평수 <span style="color:red;">*</span></label>
-    <input type="number" id="area" placeholder="예시: 13" aria-required="true" min="1" inputmode="numeric" pattern="[0-9]*"/>
-    <span class="unit">평</span>
-    <div class="hint hidden" id="areaError">평수를 1 이상의 숫자로 입력해주세요.</div>
-  </div>
-  <div class="form-group">
-    <label for="contractPower">현재 계약 전력 <span style="color:red;">*</span></label>
-    <input type="number" id="contractPower" placeholder="예시: 9" aria-required="true" min="1" inputmode="numeric" pattern="[0-9]*"/>
-    <span class="unit">kW</span>
-    <div class="hint hidden" id="contractPowerError">계약 전력을 1 이상의 숫자로 입력해주세요.</div>
-  </div>
-  
-  <div id="is24hContainer" class="checkbox-container">
-    <label for="is24h" class="checkbox-label">
-      <input type="checkbox" id="is24h" />
-      <span><strong>💡24시간 운영 시 체크</strong> (월 720시간 계산)</span>
-    </label>
-  </div>
+    <h1>⚡ 계약전력 진단기</h1>
+    <div class="disclaimer">
+        <strong>🚨 본 진단기는 한전(한국전력공사)의 공식 서비스가 아닙니다.</strong><br>
+        제공되는 정보는 단순 참고용이며, 계약전력 변경은 반드시 전문가와 상담 후 신중히 결정하세요.<br>
+        이용으로 발생하는 피해에 대해 개발자는 책임지지 않습니다.
+    </div>
+    <div class="form-group">
+        <label for="category">업종 분류 <span style="color:red;">*</span></label>
+        <select id="category" aria-required="true">
+            <option value="">-- 선택하세요 --</option>
+            <option value="음식">음식</option>
+            <option value="소매">소매</option>
+            <option value="교육">교육</option>
+            <option value="숙박">숙박</option>
+            <option value="병의원">병의원</option>
+            <option value="기타">기타</option>
+        </select>
+        <div class="hint" id="categoryError">업종 분류를 선택해주세요.</div>
+    </div>
+    <div class="form-group hidden-transition" id="subcategoryDiv">
+        <label for="subcategory">세부 업종 <span style="color:red;">*</span></label>
+        <input type="text" id="subcategory" placeholder="한식, 치킨, 카페 등" aria-required="true" />
+        <div class="hint" id="subcategoryError">세부 업종을 입력해주세요.</div>
+    </div>
+    <div class="form-group">
+        <label for="area">평수 <span style="color:red;">*</span></label>
+        <input type="number" id="area" placeholder="예시: 13" aria-required="true" min="1" inputmode="numeric" pattern="[0-9]*"/>
+        <span class="unit">평</span>
+        <div class="hint" id="areaError">평수를 1 이상의 숫자로 입력해주세요.</div>
+    </div>
+    <div class="form-group">
+        <label for="contractPower">현재 계약 전력 <span style="color:red;">*</span></label>
+        <input type="number" id="contractPower" placeholder="예시: 9" aria-required="true" min="1" inputmode="numeric" pattern="[0-9]*"/>
+        <span class="unit">kW</span>
+        <div class="hint" id="contractPowerError">계약 전력을 1 이상의 숫자로 입력해주세요.</div>
+    </div>
+    
+    <div id="is24hContainer" class="checkbox-container">
+        <label for="is24h" class="checkbox-label">
+            <input type="checkbox" id="is24h" />
+            <span><strong>💡24시간 운영 시 체크</strong> (월 720시간 계산)</span>
+        </label>
+    </div>
 
-  <div class="form-group">
-    <label for="maxUsage">연중 최대 사용 월 전력량 <span style="color:red;">*</span></label>
-    <input type="number" id="maxUsage" placeholder="예시: 4000" aria-required="true" min="1" inputmode="numeric" pattern="[0-9]*"/>
-    <span class="unit">kWh</span>
-    <div class="hint hidden" id="maxUsageError">최대 사용량을 1 이상의 숫자로 입력해주세요.</div>
-  </div>
-  
-  <div class="consent-group">
-    <p>본 서비스는 통계 분석 및 서비스 개선을 위해 사용자의 입력 정보를 수집합니다. 수집되는 정보는 업종 분류, 평수, 계약 전력, 최대 전력량, 24시간 운영 여부 등이며, 개인을 식별할 수 있는 정보는 포함되지 않습니다.</p>
-    <label for="privacyConsent">
-      <input type="checkbox" id="privacyConsent" />
-      <span>위 정보 수집 및 이용에 동의합니다.</span>
-    </label>
-  </div>
+    <div class="form-group">
+        <label for="maxUsage">연중 최대 사용 월 전력량 <span style="color:red;">*</span></label>
+        <input type="number" id="maxUsage" placeholder="예시: 4000" aria-required="true" min="1" inputmode="numeric" pattern="[0-9]*"/>
+        <span class="unit">kWh</span>
+        <div class="hint" id="maxUsageError">최대 사용량을 1 이상의 숫자로 입력해주세요.</div>
+    </div>
+    
+    <div class="consent-group">
+        <p>본 서비스는 통계 분석 및 서비스 개선을 위해 사용자의 입력 정보를 수집합니다. 수집되는 정보는 업종 분류, 평수, 계약 전력, 최대 전력량, 24시간 운영 여부 등이며, 개인을 식별할 수 있는 정보는 포함되지 않습니다.</p>
+        <label for="privacyConsent">
+            <input type="checkbox" id="privacyConsent" />
+            <span>위 정보 수집 및 이용에 동의합니다.</span>
+        </label>
+    </div>
 
-  <button id="diagnoseBtn">📊 진단하기</button>
-  <button id="simulateBtn" class="hidden">🔄 조건 변경 후 재진단</button>
+    <button id="diagnoseBtn">📊 진단하기</button>
+    <button id="simulateBtn" class="hidden-transition">🔄 조건 변경 후 재진단</button>
 
-  <div class="result hidden" id="result" role="region" aria-live="polite" aria-atomic="true"></div>
-  <button class="hidden" id="detailBtn">🔍 계산 결과 상세보기</button>
-  <div class="details hidden" id="details"></div>
-  <div class="info-note hidden"></div>
-  <script>
-    const category = document.getElementById('category');
-    const subDiv = document.getElementById('subcategoryDiv');
-    const subInput = document.getElementById('subcategory');
-    const diagnoseBtn = document.getElementById('diagnoseBtn');
-    const simulateBtn = document.getElementById('simulateBtn');
-    const privacyConsent = document.getElementById('privacyConsent');
-    const detailBtn = document.getElementById('detailBtn');
+    <div class="result hidden-transition" id="result" role="region" aria-live="polite" aria-atomic="true"></div>
+    <button class="hidden-transition" id="detailBtn">🔍 계산 결과 상세보기</button>
+    <div class="details hidden-transition" id="details"></div>
+    <div class="info-note hidden-transition"></div>
+    <script>
+        const category = document.getElementById('category');
+        const subDiv = document.getElementById('subcategoryDiv');
+        const subInput = document.getElementById('subcategory');
+        const diagnoseBtn = document.getElementById('diagnoseBtn');
+        const simulateBtn = document.getElementById('simulateBtn');
+        const privacyConsent = document.getElementById('privacyConsent');
+        const detailBtn = document.getElementById('detailBtn');
 
-    const inputStartTime = Date.now();
+        const inputStartTime = Date.now();
 
-    function getSessionId() {
-        let sessionId = sessionStorage.getItem('sessionId');
-        if (!sessionId) {
-            sessionId = Math.random().toString(36).substring(2) + Date.now().toString(36);
-            sessionStorage.setItem('sessionId', sessionId);
-        }
-        return sessionId;
-    }
-    const currentSessionId = getSessionId();
+        function getSessionId() {
+            let sessionId = sessionStorage.getItem('sessionId');
+            if (!sessionId) {
+                sessionId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+                sessionStorage.setItem('sessionId', sessionId);
+            }
+            return sessionId;
+        }
+        const currentSessionId = getSessionId();
 
-    const errors = {
-      categoryError: document.getElementById('categoryError'),
-      subcategoryError: document.getElementById('subcategoryError'),
-      areaError: document.getElementById('areaError'),
-      contractPowerError: document.getElementById('contractPowerError'),
-      maxUsageError: document.getElementById('maxUsageError')
-    };
+        const errors = {
+            categoryError: document.getElementById('categoryError'),
+            subcategoryError: document.getElementById('subcategoryError'),
+            areaError: document.getElementById('areaError'),
+            contractPowerError: document.getElementById('contractPowerError'),
+            maxUsageError: document.getElementById('maxUsageError')
+        };
 
-    const fieldsToValidate = [
-      { element: category, errorElement: errors.categoryError, validate: (val) => val.trim() !== '' },
-      { element: subInput, errorElement: errors.subcategoryError, validate: (val) => !subDiv.classList.contains('hidden') ? val.trim() !== '' : true },
-      { element: document.getElementById('area'), errorElement: errors.areaError, validate: (val) => parseInt(val) >= 1 },
-  	  { element: document.getElementById('contractPower'), errorElement: errors.contractPowerError, validate: (val) => parseInt(val) >= 1 },
-  	  { element: document.getElementById('maxUsage'), errorElement: errors.maxUsageError, validate: (val) => parseInt(val) >= 1 }
-  	];
+        const fieldsToValidate = [
+            { element: category, errorElement: errors.categoryError, validate: (val) => val.trim() !== '' },
+            { element: subInput, errorElement: errors.subcategoryError, validate: (val) => !subDiv.classList.contains('hidden-transition') ? val.trim() !== '' : true },
+            { element: document.getElementById('area'), errorElement: errors.areaError, validate: (val) => parseInt(val) >= 1 },
+            { element: document.getElementById('contractPower'), errorElement: errors.contractPowerError, validate: (val) => parseInt(val) >= 1 },
+            { element: document.getElementById('maxUsage'), errorElement: errors.maxUsageError, validate: (val) => parseInt(val) >= 1 }
+        ];
 
-  	// Helper function to scroll to the next element
-  	function scrollToNextElement(currentElement) {
-  	  const allElements = Array.from(document.querySelectorAll('input, select, .checkbox-container, .consent-group, button'));
-  	  const currentIndex = allElements.indexOf(currentElement);
-  	  if (currentIndex > -1 && currentIndex + 1 < allElements.length) {
-  	    let nextElement = allElements[currentIndex + 1];
-  	    // Skip hidden elements, but not the hidden input field itself if it's part of a visible group
-  	    while (nextElement && (nextElement.classList.contains('hidden') || nextElement.closest('.hidden')) && allElements.indexOf(nextElement) + 1 < allElements.length) {
-  	      if (nextElement.id === 'subcategory' && !subDiv.classList.contains('hidden')) {
-  	        break; // Keep subcategory if its div is visible
-  	      }
-  	      nextElement = allElements[allElements.indexOf(nextElement) + 1];
-  	    }
-  	    // Special handling for the diagnose button vs simulate button
-  	    if (nextElement.id === 'diagnoseBtn' && simulateBtn.classList.contains('visible')) {
-  	      nextElement = simulateBtn;
-  	    } else if (nextElement.id === 'simulateBtn' && diagnoseBtn.classList.contains('visible')) {
-  	      nextElement = diagnoseBtn;
-  	    }
+        // Helper function to scroll to the next element
+        function scrollToNextElement(currentElement) {
+            const allFormGroups = Array.from(document.querySelectorAll('.form-group, .checkbox-container, .consent-group, button'));
+            const currentElementGroup = currentElement.closest('.form-group, .checkbox-container, .consent-group, button');
+            if (!currentElementGroup) return;
 
-  	    if (nextElement && !nextElement.classList.contains('hidden')) {
-  	      nextElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  	    }
-  	  }
-  	}
+            const currentIndex = allFormGroups.indexOf(currentElementGroup);
+            if (currentIndex > -1 && currentIndex + 1 < allFormGroups.length) {
+                let nextElementGroup = allFormGroups[currentIndex + 1];
+
+                // Skip hidden groups or the simulate button if diagnose is visible
+                while (nextElementGroup && (nextElementGroup.classList.contains('hidden-transition') || 
+                       (nextElementGroup.id === 'simulateBtn' && diagnoseBtn.classList.contains('visible-transition'))) && 
+                       allFormGroups.indexOf(nextElementGroup) + 1 < allFormGroups.length) {
+                    
+                    if (nextElementGroup.id === 'subcategoryDiv' && !subDiv.classList.contains('hidden-transition')) {
+                        // If subcategory div is currently visible, we want to scroll to it
+                        break; 
+                    }
+                    nextElementGroup = allFormGroups[allFormGroups.indexOf(nextElementGroup) + 1];
+                }
+
+                if (nextElementGroup && !nextElementGroup.classList.contains('hidden-transition')) {
+                    nextElementGroup.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // If the next element is an input, focus it for better UX
+                    const nextInput = nextElementGroup.querySelector('input, select');
+                    if (nextInput) {
+                        nextInput.focus();
+                    }
+                }
+            }
+        }
+
+        function validateField(field) {
+            const value = field.element.value;
+            if (!field.validate(value)) {
+                field.errorElement.classList.remove('hidden'); // hidden/visible in JS for error elements
+                field.errorElement.classList.add('visible');
+                field.errorElement.style.display = 'block'; // Ensure display block for error message
+                return false;
+            } else {
+                field.errorElement.classList.add('hidden');
+                field.errorElement.classList.remove('visible');
+                field.errorElement.style.display = 'none'; // Ensure display none when valid
+                return true;
+            }
+        }
+
+        fieldsToValidate.forEach(field => {
+            field.element.addEventListener('input', () => validateField(field));
+            
+            if (field.element.tagName === 'SELECT') {
+                field.element.addEventListener('change', () => {
+                    if (validateField(field)) {
+                        if (field.element.id === 'category' && field.element.value === '기타') {
+                            // If '기타' is selected, wait for subcategory to become visible before scrolling to it
+                            setTimeout(() => {
+                                const subcategoryInput = document.getElementById('subcategory');
+                                if (subcategoryInput && !subDiv.classList.contains('hidden-transition')) {
+                                    subcategoryInput.focus();
+                                    subcategoryInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                } else {
+                                    scrollToNextElement(field.element);
+                                }
+                            }, 100); 
+                        } else {
+                            scrollToNextElement(field.element);
+                        }
+                    }
+                });
+            } else {
+                field.element.addEventListener('blur', () => {
+                    if (validateField(field)) {
+                        scrollToNextElement(field.element);
+                    }
+                });
+            }
+        });
+
+        // Scroll to consent group when maxUsage is done
+        document.getElementById('maxUsage').addEventListener('blur', () => {
+            if (validateField(fieldsToValidate[4])) { // Check if maxUsage is valid
+                const consentGroup = document.querySelector('.consent-group');
+                if (consentGroup) {
+                    consentGroup.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Optional: focus the consent checkbox after scrolling
+                    privacyConsent.focus();
+                }
+            }
+        });
+
+        // Scroll to button when consent is checked
+        privacyConsent.addEventListener('change', () => {
+            updateButtonState();
+            if (privacyConsent.checked) {
+                setTimeout(() => {
+                    const targetButton = diagnoseBtn.classList.contains('hidden-transition') ? simulateBtn : diagnoseBtn;
+                    targetButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetButton.focus(); // Focus the button
+                }, 100);
+            }
+        });
+
+        function updateButtonState() {
+            const isConsentChecked = privacyConsent.checked;
+            const isFirstDiagnosisDone = sessionStorage.getItem('firstDiagnosisDone') === 'true';
+
+            if (isConsentChecked) {
+                if (isFirstDiagnosisDone) {
+                    diagnoseBtn.classList.add('hidden-transition');
+                    diagnoseBtn.classList.remove('visible-transition');
+                    simulateBtn.classList.remove('hidden-transition');
+                    simulateBtn.classList.add('visible-transition');
+                    simulateBtn.disabled = false;
+                } else {
+                    diagnoseBtn.classList.remove('hidden-transition');
+                    diagnoseBtn.classList.add('visible-transition');
+                    simulateBtn.classList.add('hidden-transition');
+                    simulateBtn.classList.remove('visible-transition');
+                    diagnoseBtn.disabled = false;
+                }
+            } else {
+                diagnoseBtn.disabled = true;
+                simulateBtn.disabled = true;
+            }
+        }
+
+        updateButtonState();
+
+        category.addEventListener('change', () => {
+            const placeholders = {
+                음식: '한식, 치킨, 중국음식, 카페, 제빵',
+                소매: '편의점, 무인 아이스크림, 휴대폰 가게, 옷가게, 꽃가게',
+                교육: '영어 학원, 피아노 학원, 발레 학원',
+                숙박: '펜션, 게스트 하우스, 모텔',
+                병의원: '이비인후과, 치과, 소아과, 한의원, 약국',
+                기타: '부동산 중개, 미용실, 무인 세탁소'
+            };
+            if (category.value === '기타') {
+                subDiv.classList.remove('hidden-transition');
+                subDiv.classList.add('visible-transition');
+                subDiv.style.display = 'block'; // Ensure it's displayed
+                subInput.placeholder = placeholders[category.value] || '';
+            } else {
+                subDiv.classList.add('hidden-transition');
+                subDiv.classList.remove('visible-transition');
+                subDiv.style.display = 'none'; // Ensure it's hidden
+                subInput.value = '';
+            }
+            validateField(fieldsToValidate[0]);
+            if (!category.value) {
+                errors.subcategoryError.classList.add('hidden');
+                errors.subcategoryError.classList.remove('visible');
+                errors.subcategoryError.style.display = 'none';
+            } else {
+                validateField(fieldsToValidate[1]);
+            }
+        });
+
+        function numberWithCommas(x) {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        async function diagnose(isSimulation = false) {
+            if (!privacyConsent.checked) {
+                alert('정보 수집 및 이용에 동의해야 진단을 진행할 수 있습니다.');
+                return;
+            }
+
+            let allFieldsValid = true;
+            fieldsToValidate.forEach(field => {
+                if (!validateField(field)) {
+                    allFieldsValid = false;
+                }
+            });
+
+            if (!allFieldsValid) {
+                alert('필수 입력 항목을 모두 올바르게 채워주세요.');
+                return;
+            }
+
+            const categoryVal = category.value.trim();
+            const subcategoryVal = subInput.value.trim();
+            const area = parseInt(document.getElementById('area').value);
+            const contract = parseInt(document.getElementById('contractPower').value);
+            const maxUsage = parseInt(document.getElementById('maxUsage').value);
+            const is24h = document.getElementById('is24h').checked;
+            const diagnoseClickTime = Date.now();
+
+            const divisor = is24h ? 720 : 450;
+            const calculatedRaw = maxUsage / divisor;
+            const calculatedCeiled = isNaN(calculatedRaw) || calculatedRaw === 0 ? 0 : Math.ceil(calculatedRaw);
+            
+            let initialRecommendedPower = calculatedCeiled + 2;
+            let finalRecommendedPower = initialRecommendedPower;
+            let minPowerNote = '';
+
+            if (maxUsage > 0 && initialRecommendedPower < 5) {
+                finalRecommendedPower = 5;
+                minPowerNote = `(최소 계약전력은 5kW 적용)`;
+            } else if (maxUsage === 0) {
+                finalRecommendedPower = 0;
+                minPowerNote = `(전력 사용량 입력 필요)`;
+            }
+            
+            const diffForJudgment = contract - calculatedCeiled;
+            const diffForFeeCalculation = contract - finalRecommendedPower;
+
+            const feePerKw = 6160;
+
+            let judgment = '', message = '', feeText = '', caution = '', note = '';
+            let judgmentClass = '';
+            let displayedPowerText = '';
+            let displayedPowerValue = 0;
+            
+            let detailsHtmlContent = `
+                <h3>계산 상세 보기</h3>
+                <h4>사용량 기반 최소 필요 전력 계산</h4>
+                <div>연중 최대 사용량: <strong>${numberWithCommas(maxUsage)}kWh</strong></div>
+                <div>월 기준 시간: <strong>${divisor}시간</strong> (${is24h ? '24시간 운영' : '주간 평균 운영'})</div>
+                <div>계산식: ${numberWithCommas(maxUsage)}kWh ÷ ${divisor}시간 = ${calculatedRaw.toFixed(2)}kW</div>
+                <div>최소 필요 전력 (올림): <strong>${calculatedCeiled}kW</strong></div>
+                <h4>계약전력 판단 및 비용 분석</h4>
+                <div>현재 계약전력: <strong>${contract}kW</strong></div>
+            `;
+
+            if (diffForJudgment < 0) {
+                judgment = '부족';
+                judgmentClass = 'warning';
+                const increase = Math.abs(diffForFeeCalculation) * feePerKw;
+                feeText = `가산금 청구 및 전력 차단 위험이 있습니다.<br/><strong>${finalRecommendedPower}kW</strong>로 변경 시 월 기본요금이 <strong>${numberWithCommas(increase)}원 증가</strong>될 수 있습니다.`;
+                message = '현재 계약 전력이 부족합니다.';
+                caution = '<div class="hint" id="cautionMsg">⚠️ 계약전력을 변경 후 1년 이내에는 특별한 사정이 없는 한 감소할 수 없습니다. 신중히 결정하세요.</div>';
+                displayedPowerText = '추천 계약전력';
+                displayedPowerValue = finalRecommendedPower;
+                
+                detailsHtmlContent += `
+                    <div>추천 계약전력: ${calculatedCeiled}kW + 2kW(여유) ${initialRecommendedPower !== finalRecommendedPower && maxUsage > 0 ? '≒' : '='} <strong>${finalRecommendedPower}kW</strong></div>
+                    ${minPowerNote ? `<div>${minPowerNote}</div>` : ''}
+                    <div>추천 계약전력과 차이: ${contract}kW - ${finalRecommendedPower}kW = <strong>${diffForFeeCalculation}kW</strong></div>
+                    <div>월간 기본요금 차이: ${numberWithCommas(feePerKw)}원 × ${Math.abs(diffForFeeCalculation)}kW = <strong>${numberWithCommas(Math.abs(diffForFeeCalculation) * feePerKw)}원</strong></div>
+                `;
+
+            } else if (diffForJudgment >= 0 && diffForJudgment <= 2) {
+                judgment = '적정';
+                judgmentClass = 'neutral';
+                if (contract !== calculatedCeiled) {
+                    feeText = '현재 계약 전력은 적절한 여유분을 가지고 있습니다.';
+                } else {
+                    feeText = '현재 계약 전력은 최소 필요량과 같습니다.';
+                }
+                message = '현재 계약 전력은 적정 수준입니다.';
+                caution = '';
+                displayedPowerText = '계산된 최소 계약전력';
+                displayedPowerValue = calculatedCeiled;
+                
+            } else {
+                judgment = '과다';
+                judgmentClass = 'positive';
+                const saved = Math.abs(diffForFeeCalculation) * feePerKw;
+                feeText = `불필요한 비용이 발생하고 있습니다.<br/><strong>${finalRecommendedPower}kW</strong>로 변경 시 월 기본요금이 <strong>${numberWithCommas(saved)}원 감소</strong>될 수 있습니다.`;
+                message = '현재 계약 전력이 과도하게 높습니다.';
+                caution = '<div class="hint" id="cautionMsg">⚠️ 계약전력을 변경 후 1년 이내에는 특별한 사정이 없는 한 감소할 수 없습니다. 신중히 결정하세요.</div>';
+                displayedPowerText = '추천 계약전력';
+                displayedPowerValue = finalRecommendedPower;
+                
+                detailsHtmlContent += `
+                    <div>추천 계약전력: ${calculatedCeiled}kW + 2kW(여유) ${initialRecommendedPower !== finalRecommendedPower && maxUsage > 0 ? '≒' : '='} <strong>${finalRecommendedPower}kW</strong></div>
+                    ${minPowerNote ? `<div>${minPowerNote}</div>` : ''}
+                    <div>추천 계약전력과 차이: ${contract}kW - ${finalRecommendedPower}kW = <strong>${diffForFeeCalculation}kW</strong></div>
+                    <div>월간 기본요금 차이: ${numberWithCommas(feePerKw)}원 × ${Math.abs(diffForFeeCalculation)}kW = <strong>${numberWithCommas(Math.abs(diffForFeeCalculation) * feePerKw)}원</strong></div>
+                `;
+            }
+
+            if (contract >= 20) {
+                note = '<div class="hint">⚠️ 20kW 이상일 경우 최대 수요 전력 미반영 진단입니다. 본 진단은 사용량 기준으로 보조적인 참고만 하시기 바랍니다.</div>';
+            } else {
+                note = '';
+            }
+
+            const status = judgment;
+            const costDiff = diffForFeeCalculation * feePerKw;
+
+            const result = document.getElementById('result');
+            result.classList.remove('hidden-transition');
+            result.classList.add('visible-transition');
+            result.innerHTML = `
+                <div>① 현재 계약전력 판단 결과 : <strong class="${judgmentClass}">${judgment}</strong></div>
+                <div>② ${displayedPowerText} : <strong>${displayedPowerValue}kW</strong></div>
+                <div>③ ${message}</div>
+                <div>④ ${feeText}</div>
+                ${caution}
+                ${note}
+            `;
+
+            // **진단 후 결과 영역으로 스크롤 이동**
+            result.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
 
-  	function validateField(field) {
-  	  const value = field.element.value;
-  	  if (!field.validate(value)) {
-  	    field.errorElement.classList.remove('hidden');
-  	    field.errorElement.classList.add('visible');
-  	    return false;
-  	  } else {
-  	    field.errorElement.classList.add('hidden');
-  	    field.errorElement.classList.remove('visible');
-  	    return true;
-  	  }
-  	}
+            if (!isSimulation) {
+                sessionStorage.setItem('firstDiagnosisDone', 'true');
+                diagnoseBtn.classList.add('hidden-transition');
+                diagnoseBtn.classList.remove('visible-transition');
+                simulateBtn.classList.remove('hidden-transition');
+                simulateBtn.classList.add('visible-transition');
+                simulateBtn.disabled = false;
+            }
 
-  	fieldsToValidate.forEach(field => {
-  	  // Validate on input (for immediate feedback)
-  	  field.element.addEventListener('input', () => validateField(field));
-  	  
-  	  // Validate and scroll on change (for select) or blur (for input)
-  	  if (field.element.tagName === 'SELECT') {
-  	    field.element.addEventListener('change', () => {
-  	      if (validateField(field)) {
-  	        if (field.element.id === 'category' && field.element.value === '기타') {
-  	          // If '기타' is selected, wait for subcategory to become visible before scrolling to it
-  	          // Or explicitly scroll to subcategory input
-  	          setTimeout(() => {
-  	            const subcategoryInput = document.getElementById('subcategory');
-  	            if (subcategoryInput && !subDiv.classList.contains('hidden')) {
-  	              subcategoryInput.focus();
-  	              subcategoryInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  	            } else {
-  	              scrollToNextElement(field.element);
-  	            }
-  	          }, 100); // Small delay to allow subcategoryDiv to render
-  	        } else {
-  	          scrollToNextElement(field.element);
-  	        }
-  	      }
-  	    });
-  	  } else {
-  	    field.element.addEventListener('blur', () => {
-  	      if (validateField(field)) {
-  	        scrollToNextElement(field.element);
-  	      }
-  	    });
-  	  }
-  	});
+            detailBtn.classList.remove('hidden-transition');
+            detailBtn.classList.add('visible-transition');
+            detailBtn.innerText = '🔍 계산 결과 상세보기';
+            document.getElementById('details').classList.add('hidden-transition');
+            document.getElementById('details').classList.remove('visible-transition');
+            
+            document.getElementById('details').innerHTML = detailsHtmlContent;
 
-  	// Scroll to consent group when maxUsage is done
-  	document.getElementById('maxUsage').addEventListener('blur', () => {
-  	  if (validateField(fieldsToValidate[4])) { // Check if maxUsage is valid
-  	    const consentGroup = document.querySelector('.consent-group');
-  	    if (consentGroup) {
-  	      consentGroup.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  	    }
-  	  }
-  	});
+            // !!!! 중요: 이 URL을 당신의 Cloudflare Worker URL로 변경하세요. !!!!
+            const googleScriptURL = "https://throbbing-block-3ed5.kknnd0728.workers.dev";
+            
+            try {
+                const response = await fetch(googleScriptURL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "text/plain",
+                    },
+                    body: JSON.stringify({
+                        categoryVal,
+                        subcategoryVal,
+                        area,
+                        contract,
+                        maxUsage,
+                        is24h,
+                        recommendedPower: finalRecommendedPower,
+                        diff: diffForJudgment,
+                        status: status.replace(/<[^>]+>/g, ''),
+                        costDiff: costDiff,
+                        userAgent: navigator.userAgent,
+                        sessionId: currentSessionId,
+                        inputStartTime: new Date(inputStartTime).toISOString(),
+                        diagnoseClickTime: new Date(diagnoseClickTime).toISOString(),
+                        isSimulation: isSimulation,
+                        memo: ""
+                    }),
+                });
 
-  	// Scroll to button when consent is checked
-  	privacyConsent.addEventListener('change', () => {
-  	  updateButtonState();
-  	  if (privacyConsent.checked) {
-  	    setTimeout(() => {
-  	      const targetButton = diagnoseBtn.classList.contains('hidden') ? simulateBtn : diagnoseBtn;
-  	      targetButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  	    }, 100);
-  	  }
-  	});
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorData}`);
+                }
+                
+                const resultText = await response.text();
+                console.log("데이터 전송 성공:", resultText);
 
-  	function updateButtonState() {
-  	  const isConsentChecked = privacyConsent.checked;
-  	  const isFirstDiagnosisDone = sessionStorage.getItem('firstDiagnosisDone') === 'true';
+            } catch (error) {
+                console.error("데이터 전송 실패:", error);
+                alert('데이터 전송 오류가 발생했습니다. 잠시 후 다시 시도해주세요. (콘솔 로그 확인 필요)');
+            }
+        }
 
-  	  if (isConsentChecked) {
-  	    if (isFirstDiagnosisDone) {
-  	      diagnoseBtn.classList.add('hidden');
-  	      diagnoseBtn.classList.remove('visible');
-  	      simulateBtn.classList.remove('hidden');
-  	      simulateBtn.classList.add('visible');
-  	      simulateBtn.disabled = false;
-  	    } else {
-  	      diagnoseBtn.classList.remove('hidden');
-  	      diagnoseBtn.classList.add('visible');
-  	      simulateBtn.classList.add('hidden');
-  	      simulateBtn.classList.remove('visible');
-  	      diagnoseBtn.disabled = false;
-  	    }
-  	  } else {
-  	    diagnoseBtn.disabled = true;
-  	    simulateBtn.disabled = true;
-  	  }
-  	}
+        detailBtn.addEventListener('click', () => {
+            const details = document.getElementById('details');
+            if (details.classList.contains('hidden-transition')) {
+                details.classList.remove('hidden-transition');
+                details.classList.add('visible-transition');
+                detailBtn.innerText = '🔽 계산 결과 숨기기';
+            } else {
+                details.classList.add('hidden-transition');
+                details.classList.remove('visible-transition');
+                detailBtn.innerText = '🔍 계산 결과 상세보기';
+            }
+        });
 
-  	privacyConsent.addEventListener('change', updateButtonState);
-  	updateButtonState();
+        diagnoseBtn.addEventListener('click', () => diagnose(false));
+        simulateBtn.addEventListener('click', () => diagnose(true));
 
-  	category.addEventListener('change', () => {
-  	  const placeholders = {
-  	    음식: '한식, 치킨, 중국음식, 카페, 제빵',
-  	    소매: '편의점, 무인 아이스크림, 휴대폰 가게, 옷가게, 꽃가게',
-  	    교육: '영어 학원, 피아노 학원, 발레 학원',
-  	    숙박: '펜션, 게스트 하우스, 모텔',
-  	    병의원: '이비인후과, 치과, 소아과, 한의원, 약국',
-  	    기타: '부동산 중개, 미용실, 무인 세탁소'
-  	  };
-  	  if (category.value) {
-  	    subDiv.classList.remove('hidden');
-  	    subDiv.classList.add('visible');
-  	    subInput.placeholder = placeholders[category.value] || '';
-  	  } else {
-  	    subDiv.classList.add('hidden');
-  	    subDiv.classList.remove('visible');
-  	    subInput.value = ''; 
-  	  }
-  	  validateField(fieldsToValidate[0]);
-  	  if (!category.value) { 
-  	    errors.subcategoryError.classList.add('hidden');
-  	    errors.subcategoryError.classList.remove('visible');
-  	  } else {
-  	    validateField(fieldsToValidate[1]);
-  	  }
-  	});
-
-  	function numberWithCommas(x) {
-  	  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  	}
-
-  	async function diagnose(isSimulation = false) { 
-  	  if (!privacyConsent.checked) {
-  	    alert('정보 수집 및 이용에 동의해야 진단을 진행할 수 있습니다.');
-  	    return;
-  	  }
-
-  	  let allFieldsValid = true;
-  	  fieldsToValidate.forEach(field => {
-  	    if (!validateField(field)) {
-  	      allFieldsValid = false;
-  	    }
-  	  });
-
-  	  if (!allFieldsValid) {
-  	    alert('필수 입력 항목을 모두 올바르게 채워주세요.'); 
-  	    return; 
-  	  }
-
-  	  const categoryVal = category.value.trim();
-  	  const subcategoryVal = subInput.value.trim();
-  	  const area = parseInt(document.getElementById('area').value);
-  	  const contract = parseInt(document.getElementById('contractPower').value);
-  	  const maxUsage = parseInt(document.getElementById('maxUsage').value);
-  	  const is24h = document.getElementById('is24h').checked;
-  	  const diagnoseClickTime = Date.now();
-
-  	  const divisor = is24h ? 720 : 450;
-  	  const calculatedRaw = maxUsage / divisor; 
-  	  const calculatedCeiled = isNaN(calculatedRaw) || calculatedRaw === 0 ? 0 : Math.ceil(calculatedRaw); 
-  	  
-  	  let initialRecommendedPower = calculatedCeiled + 2; 
-  	  let finalRecommendedPower = initialRecommendedPower; 
-  	  let minPowerNote = ''; 
-
-  	  if (maxUsage > 0 && initialRecommendedPower < 5) { // maxUsage가 0이 아니면 최소 5kW 적용
-  	    finalRecommendedPower = 5;
-  	    minPowerNote = `(최소 계약전력은 5kW 적용)`; 
-  	  } else if (maxUsage === 0) { // maxUsage가 0이면 추천 전력도 0으로 (또는 "입력 필요" 등으로 표시)
-  	    finalRecommendedPower = 0;
-  	    minPowerNote = `(전력 사용량 입력 필요)`;
-  	  }
-  	  
-  	  const diffForJudgment = contract - calculatedCeiled; 
-  	  const diffForFeeCalculation = contract - finalRecommendedPower; 
-
-  	  const feePerKw = 6160;
-
-  	  let judgment = '', message = '', feeText = '', caution = '', note = '';
-  	  let judgmentClass = ''; // Added for styling
-  	  let displayedPowerText = ''; 
-  	  let displayedPowerValue = 0; 
-  	  
-  	  // Initial details content
-  	  let detailsHtmlContent = `
-  	    <h3>계산 상세 보기</h3>
-  	    <h4>사용량 기반 최소 필요 전력 계산</h4>
-  	    <div>연중 최대 사용량: <strong>${numberWithCommas(maxUsage)}kWh</strong></div>
-  	    <div>월 기준 시간: <strong>${divisor}시간</strong> (${is24h ? '24시간 운영' : '주간 평균 운영'})</div>
-  	    <div>계산식: ${numberWithCommas(maxUsage)}kWh ÷ ${divisor}시간 = ${calculatedRaw.toFixed(2)}kW</div>
-  	    <div>최소 필요 전력 (올림): <strong>${calculatedCeiled}kW</strong></div>
-  	    <h4>계약전력 판단 및 비용 분석</h4>
-  	    <div>현재 계약전력: <strong>${contract}kW</strong></div>
-  	  `;
-
-  	  if (diffForJudgment < 0) { 
-  	    judgment = '부족';
-  	    judgmentClass = 'warning';
-  	    const increase = Math.abs(diffForFeeCalculation) * feePerKw; 
-  	    feeText = `가산금 청구 및 전력 차단 위험이 있습니다.<br/><strong>${finalRecommendedPower}kW</strong>로 변경 시 월 기본요금이 <strong>${numberWithCommas(increase)}원 증가</strong>될 수 있습니다.`;
-  	    message = '현재 계약 전력이 부족합니다.';
-  	    caution = '<div class="hint" id="cautionMsg">⚠️ 계약전력을 변경 후 1년 이내에는 특별한 사정이 없는 한 감소할 수 없습니다. 신중히 결정하세요.</div>';
-  	    displayedPowerText = '추천 계약전력';
-  	    displayedPowerValue = finalRecommendedPower; 
-  	     
-  	    detailsHtmlContent += `
-  	      <div>추천 계약전력: ${calculatedCeiled}kW + 2kW(여유) ${initialRecommendedPower !== finalRecommendedPower && maxUsage > 0 ? '≒' : '='} <strong>${finalRecommendedPower}kW</strong></div>
-  	      ${minPowerNote ? `<div>${minPowerNote}</div>` : ''}
-  	      <div>추천 계약전력과 차이: ${contract}kW - ${finalRecommendedPower}kW = <strong>${diffForFeeCalculation}kW</strong></div>
-  	      <div>월간 기본요금 차이: ${numberWithCommas(feePerKw)}원 × ${Math.abs(diffForFeeCalculation)}kW = <strong>${numberWithCommas(Math.abs(diffForFeeCalculation) * feePerKw)}원</strong></div>
-  	    `;
-
-  	  } else if (diffForJudgment >= 0 && diffForJudgment <= 2) {
-  	    judgment = '적정';
-  	    judgmentClass = 'neutral';
-  	    if (contract !== calculatedCeiled) {
-  	        feeText = '현재 계약 전력은 적절한 여유분을 가지고 있습니다.';
-  	    } else {
-  	        feeText = '현재 계약 전력은 최소 필요량과 같습니다.'; 
-  	    }
-  	    message = '현재 계약 전력은 적정 수준입니다.';
-  	    caution = '';
-  	    displayedPowerText = '계산된 최소 계약전력'; 
-  	    displayedPowerValue = calculatedCeiled; 
-  	     
-  	  } else { 
-  	    judgment = '과다';
-  	    judgmentClass = 'positive';
-  	    const saved = Math.abs(diffForFeeCalculation) * feePerKw; 
-  	    feeText = `불필요한 비용이 발생하고 있습니다.<br/><strong>${finalRecommendedPower}kW</strong>로 변경 시 월 기본요금이 <strong>${numberWithCommas(saved)}원 감소</strong>될 수 있습니다.`;
-  	    message = '현재 계약 전력이 과도하게 높습니다.';
-  	    caution = '<div class="hint" id="cautionMsg">⚠️ 계약전력을 변경 후 1년 이내에는 특별한 사정이 없는 한 감소할 수 없습니다. 신중히 결정하세요.</div>';
-  	    displayedPowerText = '추천 계약전력';
-  	    displayedPowerValue = finalRecommendedPower; 
-  	     
-  	    detailsHtmlContent += `
-  	      <div>추천 계약전력: ${calculatedCeiled}kW + 2kW(여유) ${initialRecommendedPower !== finalRecommendedPower && maxUsage > 0 ? '≒' : '='} <strong>${finalRecommendedPower}kW</strong></div>
-  	      ${minPowerNote ? `<div>${minPowerNote}</div>` : ''}
-  	      <div>추천 계약전력과 차이: ${contract}kW - ${finalRecommendedPower}kW = <strong>${diffForFeeCalculation}kW</strong></div>
-  	      <div>월간 기본요금 차이: ${numberWithCommas(feePerKw)}원 × ${Math.abs(diffForFeeCalculation)}kW = <strong>${numberWithCommas(Math.abs(diffForFeeCalculation) * feePerKw)}원</strong></div>
-  	    `;
-  	  }
-
-  	  if (contract >= 20) {
-  	    note = '<div class="hint">⚠️ 20kW 이상일 경우 최대 수요 전력 미반영 진단입니다. 본 진단은 사용량 기준으로 보조적인 참고만 하시기 바랍니다.</div>';
-  	  } else {
-  	    note = '';
-  	  }
-
-  	  const status = judgment; // Use raw judgment for logging
-  	  const costDiff = diffForFeeCalculation * feePerKw; 
-
-  	  const result = document.getElementById('result');
-  	  result.classList.remove('hidden');
-  	  result.classList.add('visible');
-  	  result.innerHTML = `
-  	    <div>① 현재 계약전력 판단 결과 : <strong class="${judgmentClass}">${judgment}</strong></div>
-  	    <div>② ${displayedPowerText} : <strong>${displayedPowerValue}kW</strong></div>
-  	    <div>③ ${message}</div> 
-  	    <div>④ ${feeText}</div>
-  	    ${caution}
-  	    ${note}
-  	  `;
-
-  	  // **진단 후 결과 영역으로 스크롤 이동**
-  	  result.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-
-  	  if (!isSimulation) {
-  	    sessionStorage.setItem('firstDiagnosisDone', 'true');
-  	    diagnoseBtn.classList.add('hidden');
-  	    diagnoseBtn.classList.remove('visible');
-  	    simulateBtn.classList.remove('hidden');
-  	    simulateBtn.classList.add('visible');
-  	    simulateBtn.disabled = false;
-  	  }
-
-  	  detailBtn.classList.remove('hidden');
-  	  detailBtn.classList.add('visible');
-  	  detailBtn.innerText = '🔍 계산 결과 상세보기';
-  	  document.getElementById('details').classList.add('hidden');
-  	  document.getElementById('details').classList.remove('visible');
-  	   
-  	  document.getElementById('details').innerHTML = detailsHtmlContent;
-
-  	  // !!!! 중요: 이 URL을 당신의 Cloudflare Worker URL로 변경하세요. !!!!
-  	  const googleScriptURL = "https://throbbing-block-3ed5.kknnd0728.workers.dev"; 
-  	  // 이 부분을 당신이 받은 URL로 변경하세요.
-  	   
-  	  try {
-  	    const response = await fetch(googleScriptURL, { 
-  	      method: "POST",
-  	      headers: {
-  	        "Content-Type": "text/plain",
-  	      },
-  	      body: JSON.stringify({
-  	        categoryVal,
-  	        subcategoryVal,
-  	        area,
-  	        contract,
-  	        maxUsage,
-  	        is24h,
-  	        recommendedPower: finalRecommendedPower, 
-  	        diff: diffForJudgment, 
-  	        status: status.replace(/<[^>]+>/g, ''), // Remove HTML tags for logging
-  	        costDiff: costDiff, 
-  	        userAgent: navigator.userAgent,
-  	        sessionId: currentSessionId,
-  	        inputStartTime: new Date(inputStartTime).toISOString(),
-  	        diagnoseClickTime: new Date(diagnoseClickTime).toISOString(),
-  	        isSimulation: isSimulation,
-  	        memo: ""
-  	      }),
-  	    });
-
-  	    if (!response.ok) { 
-  	        const errorData = await response.text(); 
-  	        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData}`);
-  	    }
-  	     
-  	    const resultText = await response.text();
-  	    console.log("데이터 전송 성공:", resultText);
-
-  	  } catch (error) {
-  	    console.error("데이터 전송 실패:", error);
-  	    alert('데이터 전송 오류가 발생했습니다. 잠시 후 다시 시도해주세요. (콘솔 로그 확인 필요)'); 
-  	  }
-  	}
-
-  	detailBtn.addEventListener('click', () => {
-  	  const details = document.getElementById('details');
-  	  if (details.classList.contains('hidden')) {
-  	    details.classList.remove('hidden');
-  	    details.classList.add('visible');
-  	    detailBtn.innerText = '🔽 계산 결과 숨기기';
-  	  } else {
-  	    details.classList.add('hidden');
-  	    details.classList.remove('visible');
-  	    detailBtn.innerText = '🔍 계산 결과 상세보기';     
-  	  }
-  	});
-
-  	diagnoseBtn.addEventListener('click', () => diagnose(false)); 
-  	simulateBtn.addEventListener('click', () => diagnose(true));
-
-  	updateButtonState();
-  </script>
+        updateButtonState();
+    </script>
 </body>
 </html>
