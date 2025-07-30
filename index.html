@@ -444,8 +444,7 @@
         displayedPowerValue = finalRecommendedPower;  
         
         detailsHtmlContent += `
-          ▷ 추천 계약전력과 차이<br/>
-          &nbsp;&nbsp;&nbsp;&nbsp;${contract}kW - ${finalRecommendedPower}kW = <strong>${diffForFeeCalculation}kW</strong><br>
+          ▷ 현재 계약전력 - 추천 계약전력: <strong>${diffForFeeCalculation}kW</strong><br>
           ▷ 월간 기본요금 차이<br/>
           &nbsp;&nbsp;&nbsp;&nbsp;${numberWithCommas(feePerKw)}원 × ${Math.abs(diffForFeeCalculation)}kW = <strong>${numberWithCommas(Math.abs(diffForFeeCalculation) * feePerKw)}원</strong>
         `;
@@ -472,15 +471,15 @@
         displayedPowerValue = finalRecommendedPower;  
         
         detailsHtmlContent += `
-          ▷ 추천 계약전력과 차이<br/>
-          &nbsp;&nbsp;&nbsp;&nbsp;${contract}kW - ${finalRecommendedPower}kW = <strong>${diffForFeeCalculation}kW</strong><br>
+          ▷ 현재 계약전력 - 추천 계약전력: <strong>${diffForFeeCalculation}kW</strong><br>
           ▷ 월간 기본요금 차이<br/>
           &nbsp;&nbsp;&nbsp;&nbsp;${numberWithCommas(feePerKw)}원 × ${Math.abs(diffForFeeCalculation)}kW = <strong>${numberWithCommas(Math.abs(diffForFeeCalculation) * feePerKw)}원</strong>
         `;
       }
 
       if (contract >= 20) {
-        note = '<div class="hint">⚠️ 20kW 이상일 경우 최대 수요 전력 미반영 진단입니다. 본 진단은 사용량 기준으로 보조적인 참고만 하시기 바랍니다.</div>';
+        // 20kW 이상일 때 문구 수정 (선택하신 3번 옵션 적용)
+        note = '<div class="hint">⚠️ 20kW 이상일 경우, 최대 수요 전력에 대한 별도 고려가 필요합니다. 본 진단은 사용량 기준으로 제공되므로, 보조적인 정보로만 활용하시기 바랍니다.</div>';
       } else {
         note = '';
       }
