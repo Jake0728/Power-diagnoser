@@ -264,6 +264,7 @@
     const maxUsageInput = document.getElementById('maxUsage'); // maxUsage input 엘리먼트 가져오기
 
     const inputStartTime = Date.now(); // UTC 타임스탬프
+    sessionStorage.removeItem('firstDiagnosisDone');
 
     function getSessionId() {
         let sessionId = sessionStorage.getItem('sessionId');
