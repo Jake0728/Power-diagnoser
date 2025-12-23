@@ -179,36 +179,7 @@
         padding: 10px;
       }
     }
-
-
-
-
-/* ⭐ 별점 스타일 */
-.star-rating {
-  font-size: 1.8em;
-  color: #ccc;
-  cursor: pointer;
-  margin-bottom: 10px;
-}
-
-.star-rating span.selected,
-.star-rating span.hover {
-  color: #f5b301;
-}
-
-#userComment {
-  width: 100%;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  box-sizing: border-box;
-  margin-bottom: 10px;
-  resize: vertical;
-}
-
-
   </style>
-
 
 </head>
 <body>
@@ -278,41 +249,28 @@
   <button id="simulateBtn" class="hidden">🔄 조건 변경 후 재진단</button>
 
   <div class="result hidden" id="result" role="region" aria-live="polite" aria-atomic="true"></div>
-
-
-
-
-
-
-
-
-
-
-
   <button class="hidden" id="detailBtn">🔍 계산 결과 상세보기</button>
   <div class="details hidden" id="details"></div>
-  <div class="info-note hidden"></div>
-
-
-<!-- ⭐ 사용자 평가 영역 -->
-<div class="result hidden" id="reviewSection">
-  <h3>⭐ 이 진단이 도움이 되었나요?</h3>
-
-  <div class="star-rating" id="starRating">
-    <span data-value="1">★</span>
-    <span data-value="2">★</span>
-    <span data-value="3">★</span>
-    <span data-value="4">★</span>
-    <span data-value="5">★</span>
+    <div class="details hidden" id="details"></div>
+  <div class="result hidden" id="feedbackSection" style="background: white; padding: 16px; border-radius: 8px; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <h3 style="text-align:center; color:#007bff; font-size:1.1em;">🙏 진단은 도움이 되셨나요?</h3>
+    <div id="starContainer" style="text-align: center; margin-bottom: 10px;">
+      <span class="star" data-value="1" style="font-size:2em; cursor:pointer; color:#ccc;">★</span>
+      <span class="star" data-value="2" style="font-size:2em; cursor:pointer; color:#ccc;">★</span>
+      <span class="star" data-value="3" style="font-size:2em; cursor:pointer; color:#ccc;">★</span>
+      <span class="star" data-value="4" style="font-size:2em; cursor:pointer; color:#ccc;">★</span>
+      <span class="star" data-value="5" style="font-size:2em; cursor:pointer; color:#ccc;">★</span>
+    </div>
+    <textarea id="feedbackText" placeholder="사용해보신 의견을 자유롭게 남겨주세요 (선택)" style="width:100%; min-height:80px; margin-top:10px; padding:10px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box;"></textarea>
+    <button id="submitFeedbackBtn" style="background-color: #28a745; color:white; border:none; padding:12px; width:100%; border-radius:6px; margin-top:8px;">✍ 의견 보내기</button>
   </div>
 
-  <textarea id="userComment" rows="4" placeholder="보완요청, 칭찬 의견을 자유롭게 남겨주세요 (큰 힘이 됩니다!)"></textarea>
-
-  <button id="submitReviewBtn">📨 의견 남기기</button>
-</div>
-
+  <div class="info-note hidden"></div>
 
   <script>
+      const googleScriptURL = "https://throbbing-block-3ed5.kknnd0728.workers.dev";
+
+  
     const category = document.getElementById('category');
     const subDiv = document.getElementById('subcategoryDiv');
     const subInput = document.getElementById('subcategory');
@@ -323,7 +281,7 @@
     const maxUsageInput = document.getElementById('maxUsage'); // maxUsage input 엘리먼트 가져오기
 
     const inputStartTime = Date.now(); // UTC 타임스탬프
-csessionStorage.removeItem('firstDiagnosisDone');
+    sessionStorage.removeItem('firstDiagnosisDone');
 
     function getSessionId() {
         let sessionId = sessionStorage.getItem('sessionId');
@@ -549,8 +507,9 @@ csessionStorage.removeItem('firstDiagnosisDone');
 
       const result = document.getElementById('result');
       result.classList.remove('hidden');
+        document.getElementById('feedbackSection').classList.remove('hidden');
 
-
+        
       result.innerHTML = `
         <div>① 현재 계약전력 판단 결과 : ${judgment}</div>
         <div>② ${displayedPowerText} : <strong>${displayedPowerValue}kW</strong></div>
@@ -576,9 +535,6 @@ csessionStorage.removeItem('firstDiagnosisDone');
       
       document.getElementById('details').innerHTML = detailsHtmlContent;
 
-      // !!!! 중요: 이 URL을 당신의 Cloudflare Worker URL로 변경하세요. !!!!
-      const googleScriptURL = "https://throbbing-block-3ed5.kknnd0728.workers.dev";  
-      // 이 부분을 당신이 받은 URL로 변경하세요.
         
       try {
         const response = await fetch(googleScriptURL, {  
@@ -680,109 +636,71 @@ csessionStorage.removeItem('firstDiagnosisDone');
         }
     });
 
-
-
-
-
-
-
-detailBtn.addEventListener('click', () => {
-  const details = document.getElementById('details');
-  if (details.classList.contains('hidden')) {
-    details.classList.remove('hidden');
-    detailBtn.innerText = '🔽 계산 결과 숨기기';
-
-    // ⭐ 상세결과를 본 뒤 리뷰 노출
-    reviewSection.classList.remove('hidden');
-    reviewSection.scrollIntoView({ behavior: 'smooth' });
-
-  } else {
-    details.classList.add('hidden');
-    detailBtn.innerText = '🔍 계산 결과 상세보기';
-  }
-});
-
-
-
-
-
-
-
+    detailBtn.addEventListener('click', () => {
+      const details = document.getElementById('details');
+      if (details.classList.contains('hidden')) {
+        details.classList.remove('hidden');
+        detailBtn.innerText = '🔽 계산 결과 숨기기';
+        // 상세 결과 섹션으로 스크롤
+        details.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        details.classList.add('hidden');
+        detailBtn.innerText = '🔍 계산 결과 상세보기';        
+      }
+    });
 
     diagnoseBtn.addEventListener('click', () => diagnose(false));  
     simulateBtn.addEventListener('click', () => diagnose(true));
 
-
-
-
-
-/* =========================
-   ⭐ 별점 + 의견 로직
-========================= */
-
-let selectedRating = 0;
-const starContainer = document.getElementById('starRating');
-const stars = starContainer.querySelectorAll('span');
-const submitReviewBtn = document.getElementById('submitReviewBtn');
-const reviewSection = document.getElementById('reviewSection');
-
-stars.forEach(star => {
-  star.addEventListener('mouseenter', () => {
-    const val = parseInt(star.dataset.value);
-    stars.forEach(s => s.classList.toggle('hover', parseInt(s.dataset.value) <= val));
-  });
-
-  star.addEventListener('mouseleave', () => {
-    stars.forEach(s => s.classList.remove('hover'));
-  });
-
-  star.addEventListener('click', () => {
-    selectedRating = parseInt(star.dataset.value);
-    stars.forEach(s => s.classList.toggle('selected', parseInt(s.dataset.value) <= selectedRating));
-  });
-});
-
-submitReviewBtn.addEventListener('click', async () => {
-  if (selectedRating === 0) {
-    alert('별점을 선택해주세요.');
-    return;
-  }
-
-  const comment = document.getElementById('userComment').value.trim();
-
-  const googleScriptURL = "https://throbbing-block-3ed5.kknnd0728.workers.dev";
-
-  try {
-    const res = await fetch(googleScriptURL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "text/plain",
-      },
-      body: JSON.stringify({
-        type: "review",
-        rating: selectedRating,
-        feedback: comment,
-        sessionId: currentSessionId,
-        userAgent: navigator.userAgent,
-        submittedAt: formatDateToKST(Date.now())
-      })
+    updateButtonState();
+  
+      // [추가] 별점 및 피드백 전송 로직
+    let selectedRating = 0;
+    const stars = document.querySelectorAll('.star');
+    
+    stars.forEach(star => {
+      star.addEventListener('click', () => {
+        selectedRating = Number(star.dataset.value);
+        stars.forEach(s => {
+          s.style.color = Number(s.dataset.value) <= selectedRating ? '#ffc107' : '#ccc';
+        });
+      });
     });
 
-    if (!res.ok) throw new Error("리뷰 전송 실패");
+    document.getElementById('submitFeedbackBtn').addEventListener('click', async () => {
+      if (selectedRating === 0) { alert('별점을 선택해주세요.'); return; }
+      
+      const feedbackText = document.getElementById('feedbackText').value;
+      const btn = document.getElementById('submitFeedbackBtn');
+      
+      try {
+        btn.disabled = true;
+        btn.innerText = '전송 중...';
+        
+        await fetch(googleScriptURL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({
+            rating: selectedRating,
+            feedback: feedbackText,
+            sessionId: currentSessionId,
+            type: "FEEDBACK"
+          })
+        });
+        
+        alert('소중한 의견 감사합니다!');
+        btn.innerText = '✅ 전송 완료';
+      } catch (e) {
+        alert('전송 중 오류가 발생했습니다.');
+        btn.disabled = false;
+        btn.innerText = '✍ 의견 보내기';
+      }
+    });
 
-    alert("의견이 저장되었습니다. 감사합니다!");
-    submitReviewBtn.disabled = true;
+    // 진단하기 함수(diagnose) 안에서 feedbackSection.classList.remove('hidden'); 코드를 
+    // 결과 출력 시점에 추가해야 진단 후에 이 영역이 나타납니다.
 
-  } catch (err) {
-    console.error(err);
-    alert("의견 저장 중 오류가 발생했습니다.");
-  }
-});
-
-
-
-
-    updateButtonState();
+  
   </script>
 
 <footer style="text-align:center; font-size:0.8em; color:gray; margin-top:20px;">
