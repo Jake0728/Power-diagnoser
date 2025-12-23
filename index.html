@@ -179,7 +179,36 @@
         padding: 10px;
       }
     }
+
+
+
+
+/* ⭐ 별점 스타일 */
+.star-rating {
+  font-size: 1.8em;
+  color: #ccc;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.star-rating span.selected,
+.star-rating span.hover {
+  color: #f5b301;
+}
+
+#userComment {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+  resize: vertical;
+}
+
+
   </style>
+
 
 </head>
 <body>
@@ -249,9 +278,39 @@
   <button id="simulateBtn" class="hidden">🔄 조건 변경 후 재진단</button>
 
   <div class="result hidden" id="result" role="region" aria-live="polite" aria-atomic="true"></div>
+
+
+
+
+
+
+
+
+
+
+
   <button class="hidden" id="detailBtn">🔍 계산 결과 상세보기</button>
   <div class="details hidden" id="details"></div>
   <div class="info-note hidden"></div>
+
+
+<!-- ⭐ 사용자 평가 영역 -->
+<div class="result hidden" id="reviewSection">
+  <h3>⭐ 이 진단이 도움이 되었나요?</h3>
+
+  <div class="star-rating" id="starRating">
+    <span data-value="1">★</span>
+    <span data-value="2">★</span>
+    <span data-value="3">★</span>
+    <span data-value="4">★</span>
+    <span data-value="5">★</span>
+  </div>
+
+  <textarea id="userComment" rows="4" placeholder="보완요청, 칭찬 의견을 자유롭게 남겨주세요 (큰 힘이 됩니다!)"></textarea>
+
+  <button id="submitReviewBtn">📨 의견 남기기</button>
+</div>
+
 
   <script>
     const category = document.getElementById('category');
@@ -264,7 +323,7 @@
     const maxUsageInput = document.getElementById('maxUsage'); // maxUsage input 엘리먼트 가져오기
 
     const inputStartTime = Date.now(); // UTC 타임스탬프
-    sessionStorage.removeItem('firstDiagnosisDone');
+csessionStorage.removeItem('firstDiagnosisDone');
 
     function getSessionId() {
         let sessionId = sessionStorage.getItem('sessionId');
@@ -490,6 +549,8 @@
 
       const result = document.getElementById('result');
       result.classList.remove('hidden');
+
+
       result.innerHTML = `
         <div>① 현재 계약전력 판단 결과 : ${judgment}</div>
         <div>② ${displayedPowerText} : <strong>${displayedPowerValue}kW</strong></div>
@@ -619,21 +680,107 @@
         }
     });
 
-    detailBtn.addEventListener('click', () => {
-      const details = document.getElementById('details');
-      if (details.classList.contains('hidden')) {
-        details.classList.remove('hidden');
-        detailBtn.innerText = '🔽 계산 결과 숨기기';
-        // 상세 결과 섹션으로 스크롤
-        details.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        details.classList.add('hidden');
-        detailBtn.innerText = '🔍 계산 결과 상세보기';        
-      }
-    });
+
+
+
+
+
+
+detailBtn.addEventListener('click', () => {
+  const details = document.getElementById('details');
+  if (details.classList.contains('hidden')) {
+    details.classList.remove('hidden');
+    detailBtn.innerText = '🔽 계산 결과 숨기기';
+
+    // ⭐ 상세결과를 본 뒤 리뷰 노출
+    reviewSection.classList.remove('hidden');
+    reviewSection.scrollIntoView({ behavior: 'smooth' });
+
+  } else {
+    details.classList.add('hidden');
+    detailBtn.innerText = '🔍 계산 결과 상세보기';
+  }
+});
+
+
+
+
+
+
+
 
     diagnoseBtn.addEventListener('click', () => diagnose(false));  
     simulateBtn.addEventListener('click', () => diagnose(true));
+
+
+
+
+
+/* =========================
+   ⭐ 별점 + 의견 로직
+========================= */
+
+let selectedRating = 0;
+const starContainer = document.getElementById('starRating');
+const stars = starContainer.querySelectorAll('span');
+const submitReviewBtn = document.getElementById('submitReviewBtn');
+const reviewSection = document.getElementById('reviewSection');
+
+stars.forEach(star => {
+  star.addEventListener('mouseenter', () => {
+    const val = parseInt(star.dataset.value);
+    stars.forEach(s => s.classList.toggle('hover', parseInt(s.dataset.value) <= val));
+  });
+
+  star.addEventListener('mouseleave', () => {
+    stars.forEach(s => s.classList.remove('hover'));
+  });
+
+  star.addEventListener('click', () => {
+    selectedRating = parseInt(star.dataset.value);
+    stars.forEach(s => s.classList.toggle('selected', parseInt(s.dataset.value) <= selectedRating));
+  });
+});
+
+submitReviewBtn.addEventListener('click', async () => {
+  if (selectedRating === 0) {
+    alert('별점을 선택해주세요.');
+    return;
+  }
+
+  const comment = document.getElementById('userComment').value.trim();
+
+  const googleScriptURL = "https://throbbing-block-3ed5.kknnd0728.workers.dev";
+
+  try {
+    const res = await fetch(googleScriptURL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain",
+      },
+      body: JSON.stringify({
+        type: "review",
+        rating: selectedRating,
+        feedback: comment,
+        sessionId: currentSessionId,
+        userAgent: navigator.userAgent,
+        submittedAt: formatDateToKST(Date.now())
+      })
+    });
+
+    if (!res.ok) throw new Error("리뷰 전송 실패");
+
+    alert("의견이 저장되었습니다. 감사합니다!");
+    submitReviewBtn.disabled = true;
+
+  } catch (err) {
+    console.error(err);
+    alert("의견 저장 중 오류가 발생했습니다.");
+  }
+});
+
+
+
 
     updateButtonState();
   </script>
