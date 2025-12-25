@@ -673,6 +673,38 @@
       const feedbackText = document.getElementById('feedbackText').value;
       const btn = document.getElementById('submitFeedbackBtn');
       
+      // [1. 버튼을 누르자마자 알림창을 먼저 띄웁니다 (즉시 반응)]
+      const msgDiv = document.createElement('div');
+      msgDiv.innerHTML = "소중한 의견 감사합니다";
+      msgDiv.style = `
+        position: fixed; 
+        top: 50%; 
+        left: 50%; 
+        transform: translate(-50%, -50%); 
+        background-color: rgba(0, 0, 0, 0.75); 
+        color: white; 
+        padding: 10px 20px; 
+        border-radius: 30px; 
+        z-index: 9999; 
+        font-size: 14px; 
+        font-weight: normal; 
+        white-space: nowrap; 
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        text-align: center;
+        pointer-events: none;
+      `;
+      document.body.appendChild(msgDiv);
+
+      // 1초 뒤에 알림창 사라지기 (0.7초 대기 + 0.3초 애니메이션)
+      setTimeout(() => {
+        msgDiv.style.opacity = '0';
+        msgDiv.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => {
+          if (msgDiv.parentNode) document.body.removeChild(msgDiv);
+        }, 300);
+      }, 700);
+      
+      // [2. 알림창은 뜬 상태에서 백그라운드에서 데이터를 전송합니다]
       try {
         btn.disabled = true;
         btn.innerText = '전송 중...';
@@ -688,23 +720,9 @@
           })
         });
         
-        // 기존 코드
-// alert("소중한 의견 감사합니다.");
-
-// 변경 코드 (간단한 커스텀 알림 예시)
-const msgDiv = document.createElement('div');
-msgDiv.innerHTML = "소중한 의견 감사합니다";
-msgDiv.style = "position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; border:1px solid #ccc; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index:9999; border-radius:8px; font-weight:bold;";
-document.body.appendChild(msgDiv);
-
-// 2초 뒤에 자동으로 사라지게 설정
-setTimeout(() => {
-  document.body.removeChild(msgDiv);
-}, 700);
-        
         btn.innerText = '✅ 전송 완료';
       } catch (e) {
-        alert('전송 중 오류가 발생했습니다.');
+        console.error('전송 실패:', e);
         btn.disabled = false;
         btn.innerText = '✍ 의견 보내기';
       }
