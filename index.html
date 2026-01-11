@@ -659,13 +659,34 @@
     const stars = document.querySelectorAll('.star');
     
     stars.forEach(star => {
-      star.addEventListener('click', () => {
-        selectedRating = Number(star.dataset.value);
-        stars.forEach(s => {
-          s.style.color = Number(s.dataset.value) <= selectedRating ? '#ffc107' : '#ccc';
-        });
-      });
+  star.addEventListener('click', async () => {
+    selectedRating = Number(star.dataset.value);
+
+    // 1. UI 먼저 반응
+    stars.forEach(s => {
+      s.style.color = Number(s.dataset.value) <= selectedRating ? '#ffc107' : '#ccc';
     });
+
+    // 2. 즉시 서버 전송
+    try {
+      await fetch(googleScriptURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          type: "FEEDBACK",
+          rating: selectedRating,
+          feedback: "",               // 아직 의견 없으므로 빈 값
+          sessionId: currentSessionId
+        })
+      });
+
+      console.log("⭐ 별점 자동 전송 완료:", selectedRating);
+    } catch (e) {
+      console.error("별점 전송 실패", e);
+    }
+  });
+});
+
 
     document.getElementById('submitFeedbackBtn').addEventListener('click', async () => {
       if (selectedRating === 0) { alert('별점을 선택해주세요.'); return; }
