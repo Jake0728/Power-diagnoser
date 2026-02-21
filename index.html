@@ -188,7 +188,6 @@
     <strong>🚨 본 진단기는 한전(한국전력공사)의 공식 서비스가 아닙니다.</strong><br>
     제공되는 정보는 단순 참고용이며, 계약전력 변경은 반드시 전문가와 상담 후 신중히 결정하세요.<br>
     이용으로 발생하는 피해에 대해 개발자는 책임지지 않습니다.
-    <span style="font-weight: bold; color: #007bff;">(※ 본 진단은 일반용(갑) 저압 요금 기준입니다.)</span>
   </div>
   <div class="form-group">
     <label for="category">업종 분류 <span style="color:red;">*</span></label>
@@ -251,26 +250,9 @@
   <div class="result hidden" id="result" role="region" aria-live="polite" aria-atomic="true"></div>
   <button class="hidden" id="detailBtn">🔍 계산 결과 상세보기</button>
   <div class="details hidden" id="details"></div>
-    <div class="details hidden" id="details"></div>
-  <div class="result hidden" id="feedbackSection" style="background: white; padding: 16px; border-radius: 8px; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-    <h3 style="text-align:left; color:#007bff; font-size:1.1em;">진단기를 평가해주세요!</h3>
-    <div id="starContainer" style="text-align: center; margin-bottom: 10px;">
-      <span class="star" data-value="1" style="font-size:2em; cursor:pointer; color:#ccc;">★</span>
-      <span class="star" data-value="2" style="font-size:2em; cursor:pointer; color:#ccc;">★</span>
-      <span class="star" data-value="3" style="font-size:2em; cursor:pointer; color:#ccc;">★</span>
-      <span class="star" data-value="4" style="font-size:2em; cursor:pointer; color:#ccc;">★</span>
-      <span class="star" data-value="5" style="font-size:2em; cursor:pointer; color:#ccc;">★</span>
-    </div>
-    <textarea id="feedbackText" placeholder="계약전력 관련하여 궁금한 사항이 있으시면, 연락처를 포함해 의견 남겨주세요. 아는 범위에서 답변드리겠습니다." style="width:100%; min-height:80px; margin-top:10px; padding:10px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box;"></textarea>
-    <button id="submitFeedbackBtn" style="background-color: #28a745; color:white; border:none; padding:12px; width:100%; border-radius:6px; margin-top:8px;">의견 보내기</button>
-  </div>
-
   <div class="info-note hidden"></div>
 
   <script>
-      const googleScriptURL = "https://throbbing-block-3ed5.kknnd0728.workers.dev";
-
-  
     const category = document.getElementById('category');
     const subDiv = document.getElementById('subcategoryDiv');
     const subInput = document.getElementById('subcategory');
@@ -280,8 +262,8 @@
     const detailBtn = document.getElementById('detailBtn');
     const maxUsageInput = document.getElementById('maxUsage'); // maxUsage input 엘리먼트 가져오기
 
-    const inputStartTime = Date.now(); // UTC 타임스탬프
-    sessionStorage.removeItem('firstDiagnosisDone');
+    const inputStartTime = Date.now();
+sessionStorage.removeItem('firstDiagnosisDone');
 
     function getSessionId() {
         let sessionId = sessionStorage.getItem('sessionId');
@@ -292,24 +274,6 @@
         return sessionId;
     }
     const currentSessionId = getSessionId();
-
-    // UTC 시간을 한국 시간 (KST) 문자열로 변환하는 함수
-    function formatDateToKST(timestamp) {
-        const date = new Date(timestamp);
-        // Date 객체는 기본적으로 로컬 시간대를 따릅니다.
-        // 따라서 toLocaleString을 사용하여 한국 시간으로 포맷합니다.
-        // 옵션에서 시간대를 'Asia/Seoul'로 명시적으로 지정하여 정확성을 높입니다.
-        return date.toLocaleString('ko-KR', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false, // 24시간 형식
-            timeZone: 'Asia/Seoul'
-        });
-    }
 
     const errors = {
       categoryError: document.getElementById('categoryError'),
@@ -419,7 +383,7 @@
       const contract = parseInt(document.getElementById('contractPower').value);
       const maxUsage = parseInt(document.getElementById('maxUsage').value);
       const is24h = document.getElementById('is24h').checked;
-      const diagnoseClickTime = Date.now(); // UTC 타임스탬프
+      const diagnoseClickTime = Date.now();
 
       const divisor = is24h ? 720 : 450;
       const calculatedRaw = maxUsage / divisor;  
@@ -435,7 +399,6 @@
       }
       
       const diffForJudgment = contract - calculatedCeiled;  
-      // diffForFeeCalculation을 '현재 계약전력 - 최종 추천 계약전력'으로 명확히 사용
       const diffForFeeCalculation = contract - finalRecommendedPower;  
 
       const feePerKw = 6160;
@@ -447,8 +410,6 @@
       let detailsHtmlContent = `
         ▷ 최소 계약전력 계산식<br/>
         &nbsp;&nbsp;&nbsp;&nbsp;${numberWithCommas(maxUsage)}kWh ÷ ${divisor}시간 = ${calculatedRaw.toFixed(2)} ≒ <strong>${calculatedCeiled}kW</strong><br>
-        ▷ 추천 계약전력 : ${calculatedCeiled}kW + 2kW(여유) ${initialRecommendedPower !== finalRecommendedPower ? '≒' : '='} <strong>${finalRecommendedPower}kW</strong><br>
-        ${minPowerNote ? `&nbsp;&nbsp;&nbsp;&nbsp;${minPowerNote}<br>` : ''}
         ▷ 현재 계약전력: <strong>${contract}kW</strong><br>
       `;
 
@@ -462,7 +423,10 @@
         displayedPowerValue = finalRecommendedPower;  
         
         detailsHtmlContent += `
-          ▷ 현재 계약전력 - 추천 계약전력: <strong>${diffForFeeCalculation}kW</strong><br>
+          ▷ 추천 계약전력 : ${calculatedCeiled}kW + 2kW(여유) ${initialRecommendedPower !== finalRecommendedPower ? '≒' : '='} <strong>${finalRecommendedPower}kW</strong><br>
+          ${minPowerNote ? `&nbsp;&nbsp;&nbsp;&nbsp;${minPowerNote}<br>` : ''}
+          ▷ 추천 계약전력과 차이<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;${contract}kW - ${finalRecommendedPower}kW = <strong>${diffForFeeCalculation}kW</strong><br>
           ▷ 월간 기본요금 차이<br/>
           &nbsp;&nbsp;&nbsp;&nbsp;${numberWithCommas(feePerKw)}원 × ${Math.abs(diffForFeeCalculation)}kW = <strong>${numberWithCommas(Math.abs(diffForFeeCalculation) * feePerKw)}원</strong>
         `;
@@ -489,15 +453,17 @@
         displayedPowerValue = finalRecommendedPower;  
         
         detailsHtmlContent += `
-          ▷ 현재 계약전력 - 추천 계약전력: <strong>${diffForFeeCalculation}kW</strong><br>
+          ▷ 추천 계약전력 : ${calculatedCeiled}kW + 2kW(여유) ${initialRecommendedPower !== finalRecommendedPower ? '≒' : '='} <strong>${finalRecommendedPower}kW</strong><br>
+          ${minPowerNote ? `&nbsp;&nbsp;&nbsp;&nbsp;${minPowerNote}<br>` : ''}
+          ▷ 추천 계약전력과 차이<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;${contract}kW - ${finalRecommendedPower}kW = <strong>${diffForFeeCalculation}kW</strong><br>
           ▷ 월간 기본요금 차이<br/>
           &nbsp;&nbsp;&nbsp;&nbsp;${numberWithCommas(feePerKw)}원 × ${Math.abs(diffForFeeCalculation)}kW = <strong>${numberWithCommas(Math.abs(diffForFeeCalculation) * feePerKw)}원</strong>
         `;
       }
 
       if (contract >= 20) {
-        // 20kW 이상일 때 문구 수정 (선택하신 3번 옵션 적용)
-        note = '<div class="hint">⚠️ 20kW 이상일 경우, 최대 수요 전력에 대한 별도 고려가 필요합니다. 본 진단은 사용량 기준으로 제공되므로, 보조적인 정보로만 활용하시기 바랍니다.</div>';
+        note = '<div class="hint">⚠️ 20kW 이상일 경우 최대 수요 전력 미반영 진단입니다. 본 진단은 사용량 기준으로 보조적인 참고만 하시기 바랍니다.</div>';
       } else {
         note = '';
       }
@@ -507,9 +473,6 @@
 
       const result = document.getElementById('result');
       result.classList.remove('hidden');
-        document.getElementById('feedbackSection').classList.remove('hidden');
-
-        
       result.innerHTML = `
         <div>① 현재 계약전력 판단 결과 : ${judgment}</div>
         <div>② ${displayedPowerText} : <strong>${displayedPowerValue}kW</strong></div>
@@ -535,6 +498,9 @@
       
       document.getElementById('details').innerHTML = detailsHtmlContent;
 
+      // !!!! 중요: 이 URL을 당신의 Cloudflare Worker URL로 변경하세요. !!!!
+      const googleScriptURL = "https://throbbing-block-3ed5.kknnd0728.workers.dev";  
+      // 이 부분을 당신이 받은 URL로 변경하세요.
         
       try {
         const response = await fetch(googleScriptURL, {  
@@ -550,14 +516,13 @@
             maxUsage,
             is24h,
             recommendedPower: finalRecommendedPower,  
-            diff: diffForFeeCalculation,  
+            diff: diffForJudgment,  
             status,
             costDiff: costDiff,  
             userAgent: navigator.userAgent,
             sessionId: currentSessionId,
-            // 한국 시간으로 변환하여 전송
-            inputStartTime: formatDateToKST(inputStartTime),
-            diagnoseClickTime: formatDateToKST(diagnoseClickTime),
+            inputStartTime: new Date(inputStartTime).toISOString(),
+            diagnoseClickTime: new Date(diagnoseClickTime).toISOString(),
             isSimulation: isSimulation,
             memo: ""
           }),
@@ -653,106 +618,6 @@
     simulateBtn.addEventListener('click', () => diagnose(true));
 
     updateButtonState();
-  
-      // [추가] 별점 및 피드백 전송 로직
-    let selectedRating = 0;
-    const stars = document.querySelectorAll('.star');
-    
-    stars.forEach(star => {
-  star.addEventListener('click', async () => {
-    selectedRating = Number(star.dataset.value);
-
-    // 1. UI 먼저 반응
-    stars.forEach(s => {
-      s.style.color = Number(s.dataset.value) <= selectedRating ? '#ffc107' : '#ccc';
-    });
-
-    // 2. 즉시 서버 전송
-    try {
-      await fetch(googleScriptURL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({
-          type: "FEEDBACK",
-          rating: selectedRating,
-          feedback: "",               // 아직 의견 없으므로 빈 값
-          sessionId: currentSessionId
-        })
-      });
-
-      console.log("⭐ 별점 자동 전송 완료:", selectedRating);
-    } catch (e) {
-      console.error("별점 전송 실패", e);
-    }
-  });
-});
-
-
-    document.getElementById('submitFeedbackBtn').addEventListener('click', async () => {
-      if (selectedRating === 0) { alert('별점을 선택해주세요.'); return; }
-      
-      const feedbackText = document.getElementById('feedbackText').value;
-      const btn = document.getElementById('submitFeedbackBtn');
-      
-      // [1. 버튼을 누르자마자 알림창을 먼저 띄웁니다 (즉시 반응)]
-      const msgDiv = document.createElement('div');
-      msgDiv.innerHTML = "소중한 의견 감사합니다";
-      msgDiv.style = `
-        position: fixed; 
-        top: 50%; 
-        left: 50%; 
-        transform: translate(-50%, -50%); 
-        background-color: rgba(0, 0, 0, 0.75); 
-        color: white; 
-        padding: 10px 20px; 
-        border-radius: 30px; 
-        z-index: 9999; 
-        font-size: 14px; 
-        font-weight: normal; 
-        white-space: nowrap; 
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        text-align: center;
-        pointer-events: none;
-      `;
-      document.body.appendChild(msgDiv);
-
-      // 1초 뒤에 알림창 사라지기 (0.7초 대기 + 0.3초 애니메이션)
-      setTimeout(() => {
-        msgDiv.style.opacity = '0';
-        msgDiv.style.transition = 'opacity 0.3s ease';
-        setTimeout(() => {
-          if (msgDiv.parentNode) document.body.removeChild(msgDiv);
-        }, 300);
-      }, 700);
-      
-      // [2. 알림창은 뜬 상태에서 백그라운드에서 데이터를 전송합니다]
-      try {
-        btn.disabled = true;
-        btn.innerText = '전송 중...';
-        
-        await fetch(googleScriptURL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({
-            rating: selectedRating,
-            feedback: feedbackText,
-            sessionId: currentSessionId,
-            type: "FEEDBACK"
-          })
-        });
-        
-        btn.innerText = '✅ 전송 완료';
-      } catch (e) {
-        console.error('전송 실패:', e);
-        btn.disabled = false;
-        btn.innerText = '✍ 의견 보내기';
-      }
-    });
-
-    // 진단하기 함수(diagnose) 안에서 feedbackSection.classList.remove('hidden'); 코드를 
-    // 결과 출력 시점에 추가해야 진단 후에 이 영역이 나타납니다.
-
-  
   </script>
 
 <footer style="text-align:center; font-size:0.8em; color:gray; margin-top:20px;">
@@ -761,3 +626,4 @@
     </footer>
 </body>
 </html>
+
